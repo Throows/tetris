@@ -1,6 +1,7 @@
 #pragma once 
 
 #include <SFML/Graphics.hpp>
+#include <map>
 
 enum TetrominoType 
 {
@@ -29,45 +30,39 @@ enum Movement
     ROTATE = 3
 };
 
-struct Block
-{
-    sf::Vector2f position;
-    sf::Color color;
-
-    Block() : position(-1, -1), color(sf::Color::Black){};
-    Block(sf::Vector2f position, sf::Color color) : position(position), color(color){};
-
-    void Render(sf::RenderWindow &window, float size)
-    {
-        sf::RectangleShape block;
-        block.setSize(sf::Vector2f(size, size));
-        block.setPosition(this->position * size);
-        block.setFillColor(this->color);
-        window.draw(block);
-    }
-};
-
 class Tetromino
 {
 public:
-    Tetromino();
-    Tetromino(TetrominoType type);
+    Tetromino(float size = 25.0f);
+    Tetromino(TetrominoType type, float size = 25.0f);
     Tetromino(const Tetromino &tetromino);
     ~Tetromino() = default;
 
     void Update();
-    void Render(sf::RenderWindow &window, float size);
+    void Render(sf::RenderWindow &window);
 
     bool Move(Movement movement);
     bool Revert(Movement movement);
 
-    std::vector<Block> GetBlocks() const;
+    std::vector<sf::Vector2i> GetAbsoluteCoordinates() const;
+
+    bool IsOutOfBoard(uint16_t width, uint16_t height) const;
+    bool IsColliding(const Tetromino &tetromino) const;
+    bool IsEmpty() const { return m_relative_coordinates.empty(); };
+
+    void RemoveLine(uint8_t line);
+    void MovePartsDown(uint8_t line);
+
+    Tetromino operator=(const Tetromino &tetromino);
 
 private:
     TetrominoType m_type;
+    float m_size;
     Rotation m_rotation;
-    sf::Vector2i m_center_position = { 5, 1 };
-    std::vector<sf::Vector2i> m_positions;                    // Set of relative positions to the center position
+    sf::Vector2i m_coordinates = { 4, -1 };             // Center Coordinate of the block
+    std::vector<sf::Vector2i> m_relative_coordinates;   // Relative coordinates of the block parts
+
+    sf::Vector2f m_position = { 0, 50 }; //Used for Render
 
     void CreateTetromino();
 

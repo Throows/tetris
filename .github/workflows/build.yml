@@ -1,0 +1,94 @@
+name: build
+
+on:
+  push:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: xmake-io/github-action-setup-xmake@master
+        with:
+          xmake-version: latest
+          actions-cache-folder: '.xmake-cache'
+          actions-cache-key: latest
+          build-cache: true
+          build-cache-key: latest
+          package-cache: true
+          package-cache-key: latest
+          project-path: '.'
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            libxrandr-dev \
+            libxcursor-dev \
+            libxi-dev \
+            libudev-dev \
+            libflac-dev \
+            libvorbis-dev \
+            libgl1-mesa-dev \
+            libegl1-mesa-dev \
+            libdrm-dev \
+            libgbm-dev
+      - name: Run Build
+        run: |
+          xmake --version
+          xmake -y
+          xmake build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tetris-linux-latest
+          path: bin/
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: xmake-io/github-action-setup-xmake@master
+        with:
+          xmake-version: latest
+          actions-cache-folder: '.xmake-cache'
+          actions-cache-key: latest
+          build-cache: true
+          build-cache-key: latest
+          package-cache: true
+          package-cache-key: latest
+          project-path: '.'
+      - name: Run Build
+        run: |
+          xmake --version
+          xmake -y
+          xmake build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tetris-windows-latest
+          path: bin/
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: xmake-io/github-action-setup-xmake@master
+        with:
+          xmake-version: latest
+          actions-cache-folder: '.xmake-cache'
+          actions-cache-key: latest
+          build-cache: true
+          build-cache-key: latest
+          package-cache: true
+          package-cache-key: latest
+          project-path: '.'
+      - name: Run Build
+        run: |
+          xmake --version
+          xmake -y
+          xmake build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tetris-macos-latest
+          path: bin/

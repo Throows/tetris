@@ -7,15 +7,17 @@ set_version("1.0.0")
 -- set language standard
 set_languages("c++23")
 
+add_rules("mode.debug", "mode.releasedbg", "mode.release")
+
 -- set build and bin directories
-set_objectdir("build")
-set_targetdir("bin")
+set_objectdir("./build/$(plat)_$(arch)_$(mode)")
+set_targetdir("./bin/$(plat)_$(arch)_$(mode)")
+set_rundir("./bin/$(plat)_$(arch)_$(mode)")
 
 add_requires("spdlog", "sfml")
 
-set_allowedmodes("debug", "release")
-
--- set default mode
+set_allowedplats("windows", "macosx", "linux")
+set_allowedmodes("debug", "releasedbg", "release")
 set_defaultmode("debug")
 
 -- add target
@@ -23,13 +25,25 @@ target("tetris")
     set_kind("binary")
     add_files("src/*.cpp")
     add_packages("spdlog", "sfml")
-    add_cxxflags("-Wall", "-Wextra", "-Werror", "-pedantic", "-g")
-    add_ldflags("-ObjC")
+    add_cxxflags("-Wall", "-Wextra", "-Werror", "-pedantic")
+
+    if is_plat("macosx") then
+        add_ldflags("-ObjC")
+    end
     -- set debug mode
     if is_mode("debug") then
         set_symbols("debug")
         set_optimize("none")
         add_defines("DEBUG")
+        add_cxxflags("-g")
     end
--- add include directories
-add_includedirs("include")
+
+    -- add include directories
+    add_includedirs("include")
+
+    after_build(function (target)
+        print("Target Built : %s", target:name())
+        os.rm("bin/$(plat)_$(arch)_$(mode)/assets")
+        os.cp("assets", "bin/$(plat)_$(arch)_$(mode)/assets")
+    end)
+target_end()

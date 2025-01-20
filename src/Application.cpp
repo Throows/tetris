@@ -2,7 +2,8 @@
 
 Application::Application()
 {
-    m_window.create(sf::VideoMode({800, 600}), "Tetris - POO");
+    m_window.create(sf::VideoMode({10 * 25, 25 * 22}), "Tetris - POO");
+    m_window.setFramerateLimit(60);
 }
 
 Application::~Application()
@@ -11,7 +12,7 @@ Application::~Application()
 
 int Application::Run()
 {
-    Init();
+    Application::Init();
 
     while (this->m_window.isOpen())
     {
@@ -26,7 +27,7 @@ int Application::Run()
 
 void Application::Init()
 {
-
+    this->m_tetris.Init(this->m_window.getSize());
 }
 
 void Application::ProcessEvents() 

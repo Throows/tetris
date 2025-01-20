@@ -1,6 +1,20 @@
 #include "Tetris.hpp"
 #include <spdlog/spdlog.h>
 
+void Tetris::Init(sf::Vector2u window_size)
+{
+    if (!font.openFromFile("assets/font/CheeseMarket.ttf")) {
+        spdlog::error("Cannot load font !");
+    }
+
+    this->game_over_text = sf::Text(font, "Game Over", 50);
+    this->game_over_text.setFillColor(sf::Color::Red);
+
+    sf::Vector2f position = {window_size.x / 2 - this->game_over_text.getGlobalBounds().size.x / 2,
+                             window_size.y / 2 - this->game_over_text.getGlobalBounds().size.y / 2};
+    this->game_over_text.setPosition(position);
+}
+
 void Tetris::MoveTetromino(Movement direction)
 {
     if (Tetris::CanTetrominoMove(direction)) {
@@ -10,48 +24,38 @@ void Tetris::MoveTetromino(Movement direction)
 
 void Tetris::Update(sf::Time elapsed)
 {
-    if (elapsed.asMilliseconds() > 800) {
+    if (elapsed.asMilliseconds() > 800 && !is_game_over) {
 
         if (Tetris::CanTetrominoMove(Movement::DOWN)) {
             tetromino.Update();
         } else {
-            Tetris::FixTetromino();
+            this->fixed_tetrominos.push_back(tetromino);
             tetromino = Tetromino();
             Tetris::CheckLines();
+            if (Tetris::IsColliding(tetromino)) {
+                is_game_over = true;
+            }
         }
     }
 }
 
 void Tetris::Render(sf::RenderWindow &window)
 {
-    tetromino.Render(window, 50);
-    for (auto &block : blocks) {
-        if (block.color == sf::Color::Black) {
-            continue;
-        }
-        block.Render(window, 50); 
+    for (auto &fixed_tetromino : this->fixed_tetrominos) {
+        fixed_tetromino.Render(window); 
+    }
+
+    if (is_game_over) {
+        window.draw(this->game_over_text);
+    } else {
+        tetromino.Render(window);
     }
 }
 
-bool Tetris::IsColliding(Tetromino& tetromino)
+bool Tetris::IsColliding(Tetromino& new_tetromino)
 {
-    for (auto &block : blocks)
-    {
-        for (auto &tetromino_block : tetromino.GetBlocks())
-        {
-            if ((block.position == tetromino_block.position) && (block.color != sf::Color::Black)) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-bool Tetris::IsOutOfBoard(Tetromino& tetromino)
-{
-    for (auto &block : tetromino.GetBlocks())
-    {
-        if (block.position.x < 0 || block.position.x >= BOARD_WIDTH || block.position.y >= BOARD_HEIGHT) {
+    for (const Tetromino& fixed_tetromino : fixed_tetrominos) {   
+        if (new_tetromino.IsColliding(fixed_tetromino)) {
             return true;
         }
     }
@@ -60,38 +64,33 @@ bool Tetris::IsOutOfBoard(Tetromino& tetromino)
 
 void Tetris::CheckLines()
 {
-    uint8_t line_total_blocks[BOARD_HEIGHT];
-    for (int i = 0; i < BOARD_HEIGHT; i++) {
-        line_total_blocks[i] = 0;
-    }
+    uint8_t block_per_lines[BOARD_HEIGHT] = {0};
 
-    for (int y = 0; y < BOARD_HEIGHT; y++) {
-        for (int x = 0; x < BOARD_WIDTH; x++) {
-            if (blocks.at(y * BOARD_WIDTH + x).color != sf::Color::Black) {
-                line_total_blocks[y]++;
-            }
-        }
-        if (line_total_blocks[y] == BOARD_WIDTH) {
-            for (int i = y; i > 0; i--) {
-                for (int x = 0; x < BOARD_WIDTH; x++) {
-                    blocks.at(i * BOARD_WIDTH + x) = blocks.at((i - 1) * BOARD_WIDTH + x);
-                    blocks.at(i * BOARD_WIDTH + x).position.y++;
-                }
-            }
-            for (int x = 0; x < BOARD_WIDTH; x++) {
-                blocks.at(x) = Block{sf::Vector2f(x, 0), sf::Color::Black};
-            }
+    for (const Tetromino& fixed_tetromino : fixed_tetrominos) {
+        for (const sf::Vector2i& position : fixed_tetromino.GetAbsoluteCoordinates()) {
+            block_per_lines[position.y]++;
         }
     }
-}
 
-void Tetris::FixTetromino()
-{
-    for (const Block& block : tetromino.GetBlocks()) {
-        int x = block.position.x;
-        int y = block.position.y;
-        blocks.at(y * BOARD_WIDTH + x) = block;
+    for (uint8_t y = 0; y < BOARD_HEIGHT; y++)
+    {
+        if (block_per_lines[y] == BOARD_WIDTH)
+        {
+            for (Tetromino& fixed_tetromino : fixed_tetrominos) {
+                fixed_tetromino.RemoveLine(y);
+                fixed_tetromino.MovePartsDown(y);
+            } 
+        }
     }
+    this->fixed_tetrominos.erase(
+                std::remove_if(this->fixed_tetrominos.begin(),
+                            this->fixed_tetrominos.end(),
+                            [](Tetromino fixed_tetromino) {
+                                return fixed_tetromino.IsEmpty();
+                            }),
+                            this->fixed_tetrominos.end());
+
+    spdlog::info("Fixed Tetrominos: {}", this->fixed_tetrominos.size());
 }
 
 bool Tetris::CanTetrominoMove(Movement movement)
@@ -99,5 +98,5 @@ bool Tetris::CanTetrominoMove(Movement movement)
     Tetromino next_position = tetromino;
     next_position.Move(movement);
 
-    return !Tetris::IsColliding(next_position) && !Tetris::IsOutOfBoard(next_position);
+    return !Tetris::IsColliding(next_position) && !next_position.IsOutOfBoard(BOARD_WIDTH, BOARD_HEIGHT);
 }

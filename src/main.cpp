@@ -3,7 +3,7 @@
 int main()
 {
     spdlog::info("Demarrage de l'application");
-    std::srand(std::time(nullptr));
+    std::srand((unsigned int)::time(nullptr));
 
     Application app;
     return app.Run();

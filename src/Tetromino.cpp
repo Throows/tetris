@@ -3,8 +3,10 @@
 #include <stdlib.h>
 #include <iostream>
 #include <random>
+#include <spdlog/spdlog.h>
 
-Tetromino::Tetromino()
+Tetromino::Tetromino(float size) 
+    : m_size(size)
 {
     std::random_device r;
     std::default_random_engine e1(r());
@@ -13,8 +15,9 @@ Tetromino::Tetromino()
     Tetromino::CreateTetromino();
 }
 
-Tetromino::Tetromino(TetrominoType type)
+Tetromino::Tetromino(TetrominoType type, float size)
     : m_type(type)
+    , m_size(size)
 {
     Tetromino::CreateTetromino();
 }
@@ -22,9 +25,11 @@ Tetromino::Tetromino(TetrominoType type)
 Tetromino::Tetromino(const Tetromino &tetromino)
 {
     this->m_type = tetromino.m_type;
+    this->m_size = tetromino.m_size;
     this->m_rotation = tetromino.m_rotation;
-    this->m_center_position = tetromino.m_center_position;
-    this->m_positions = tetromino.m_positions;
+    this->m_coordinates = tetromino.m_coordinates;
+    this->m_relative_coordinates = tetromino.m_relative_coordinates;
+    this->m_position = tetromino.m_position;
 }
 
 void Tetromino::Update()
@@ -32,40 +37,40 @@ void Tetromino::Update()
     Tetromino::MoveDown();
 }
 
-void Tetromino::Render(sf::RenderWindow &window, float size)
+void Tetromino::Render(sf::RenderWindow &window)
 {
-    for (auto &position : this->m_positions)
+    for (auto &position : this->m_relative_coordinates)
     {
-        sf::RectangleShape rectangle({size, size});
+        sf::RectangleShape rectangle({this->m_size, this->m_size});
         rectangle.setFillColor(GetColor());
-        rectangle.setPosition(GetAbsolutePosition(position) * size);
+        rectangle.setPosition(GetAbsolutePosition(position));
         window.draw(rectangle);
     }
 }
 
 void Tetromino::MoveLeft()
 {
-    this->m_center_position.x--;
+    this->m_coordinates.x--;
 }
 
 void Tetromino::MoveRight()
 {
-    this->m_center_position.x++;
+    this->m_coordinates.x++;
 }
 
 void Tetromino::MoveDown()
 {
-    this->m_center_position.y++;
+    this->m_coordinates.y++;
 }
 
 void Tetromino::MoveUp()
 {
-    this->m_center_position.y--;
+    this->m_coordinates.y--;
 }
 
 void Tetromino::Rotate()
 {
-    for (auto &position : this->m_positions)
+    for (auto &position : this->m_relative_coordinates)
     {
         int x = position.x;
         position.x = -position.y;
@@ -119,20 +124,77 @@ bool Tetromino::Revert(Movement movement)
     return true;
 }
 
-std::vector<Block> Tetromino::GetBlocks() const
+std::vector<sf::Vector2i> Tetromino::GetAbsoluteCoordinates() const
 {
-    std::vector<Block> blocks;
-    sf::Color color = Tetromino::GetColor();
-    for (auto &position : this->m_positions)
+    std::vector<sf::Vector2i> absolute_coordinates;
+    for (auto &position : this->m_relative_coordinates)
     {
-        blocks.push_back(Block{GetAbsolutePosition(position), color});
+        absolute_coordinates.push_back(position + this->m_coordinates);
     }
-    return blocks;
+    return absolute_coordinates;
+}
+
+bool Tetromino::IsOutOfBoard(uint16_t width, uint16_t height) const
+{
+    for (auto &position : this->m_relative_coordinates)
+    {
+        auto position_x = position.x + this->m_coordinates.x;
+        auto position_y = position.y + this->m_coordinates.y;
+
+        if (position_x < 0 ||  position_x >= width ||  position_y >= height)
+            return true;
+    }
+    return false;
+}
+
+bool Tetromino::IsColliding(const Tetromino& tetromino) const 
+{
+    for (auto &position : Tetromino::GetAbsoluteCoordinates())
+    {
+        for (auto &other_potitions : tetromino.GetAbsoluteCoordinates())
+        {
+            if (position == other_potitions)
+                return true;
+        }
+    }
+    return false;
+}
+
+void Tetromino::RemoveLine(uint8_t line)
+{
+    this->m_relative_coordinates.erase(
+        std::remove_if(this->m_relative_coordinates.begin(), 
+                       this->m_relative_coordinates.end(), 
+                       [line, this](sf::Vector2i position) { 
+                            return (position.y + this->m_coordinates.y) == line;
+                        }),
+                       this->m_relative_coordinates.end());
+}
+
+void Tetromino::MovePartsDown(uint8_t line)
+{
+    for (auto &position : this->m_relative_coordinates) {
+        if ((position.y + this->m_coordinates.y) < line){
+            position.y++;
+        }
+    }
+}
+
+Tetromino Tetromino::operator=(const Tetromino &tetromino)
+{
+    this->m_type = tetromino.m_type;
+    this->m_size = tetromino.m_size;
+    this->m_rotation = tetromino.m_rotation;
+    this->m_coordinates = tetromino.m_coordinates;
+    this->m_relative_coordinates = tetromino.m_relative_coordinates;
+    this->m_position = tetromino.m_position;
+    return *this;
 }
 
 sf::Vector2f Tetromino::GetAbsolutePosition(sf::Vector2i position) const
 {
-    return sf::Vector2f{this->m_center_position.x + position.x + 0.0f, this->m_center_position.y + position.y + 0.0f};
+    sf::Vector2f board_position = sf::Vector2f(this->m_coordinates + position) * this->m_size;
+    return sf::Vector2f(this->m_position + board_position);
 }
 
 void Tetromino::CreateTetromino()
@@ -140,25 +202,25 @@ void Tetromino::CreateTetromino()
     switch (this->m_type)
     {
     case BAR:
-        this->m_positions = { {-2, -1}, {-1, -1}, {0, -1}, {1, -1} };
+        this->m_relative_coordinates = { {-1, -1}, {-0, -1}, {1, -1}, {2, -1} };
         break;
     case T_SHAPE:
-        this->m_positions = { {-1, -1}, {0, -1}, {1, -1}, {0, 0} };
+        this->m_relative_coordinates = { {-1, -1}, {0, -1}, {1, -1}, {0, 0} };
         break;
     case CUBE:
-        this->m_positions = { {-1, -1}, {0, -1}, {-1, 0}, {0, 0} };
+        this->m_relative_coordinates = { {0, 0}, {0, 1}, {1, 0}, {1, 1} };
         break;
     case L_SHAPE:
-        this->m_positions = { {-1, -1}, {0, -1}, {1, -1}, {-1, 0} };
+        this->m_relative_coordinates = { {-1, -1}, {0, -1}, {1, -1}, {-1, 0} };
         break;
     case J_SHAPE:
-        this->m_positions = { {-1, -1}, {0, -1}, {1, -1}, {1, 0} };
+        this->m_relative_coordinates = { {-1, -1}, {0, -1}, {1, -1}, {1, 0} };
         break;
     case Z_SHAPE: 
-        this->m_positions = { {-1, -1}, {0, -1}, {0, 0}, {1, 0} };
+        this->m_relative_coordinates = { {-1, -1}, {0, -1}, {0, 0}, {1, 0} };
         break;
     case S_SHAPE:
-        this->m_positions = { {1, -1}, {0, -1}, {0, 0}, {-1, 0} };
+        this->m_relative_coordinates = { {1, -1}, {0, -1}, {0, 0}, {-1, 0} };
         break;
     default:
         break;

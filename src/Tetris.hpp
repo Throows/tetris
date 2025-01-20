@@ -7,6 +7,8 @@ public:
     Tetris() = default;
     ~Tetris() = default;
 
+    void Init(sf::Vector2u window_size);
+
     void MoveTetromino(Movement movement);
 
     void Update(sf::Time elapsed);
@@ -14,14 +16,17 @@ public:
 
 private:
     static constexpr int BOARD_WIDTH = 10;
-    static constexpr int BOARD_HEIGHT = 11;
+    static constexpr int BOARD_HEIGHT = 20;
+    static constexpr float SIZE = 25.0f;
     Tetromino tetromino = Tetromino();
-    std::array<Block, BOARD_WIDTH * BOARD_HEIGHT> blocks = {};
+    std::vector<Tetromino> fixed_tetrominos;
+    bool is_game_over = false;
 
-    bool IsColliding(Tetromino& tetromino);
-    bool IsOutOfBoard(Tetromino& tetromino);
+    sf::Font font;
+    sf::Text game_over_text = sf::Text(font, "Game Over", 50);
+
+    bool IsColliding(Tetromino& new_tetromino);
     void CheckLines();
-    void FixTetromino();
 
     bool CanTetrominoMove(Movement movement);
 
