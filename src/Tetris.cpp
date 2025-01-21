@@ -1,6 +1,14 @@
 #include "Tetris.hpp"
 #include <spdlog/spdlog.h>
 
+Tetris::Tetris()
+{
+    this->tetromino_texture = sf::Texture("assets/image/tetrominos.png");
+    this->background.setScale({this->SIZE / 384.0f, this->SIZE / 384.0f});
+    this->background.setTextureRect(sf::IntRect({TetrominoType::SHAPE_MAX * 384, 0}, {384, 384}));
+}
+
+
 void Tetris::Init(sf::Vector2u window_size)
 {
     if (!font.openFromFile("assets/font/CheeseMarket.ttf")) {
@@ -17,9 +25,15 @@ void Tetris::Init(sf::Vector2u window_size)
 
 void Tetris::MoveTetromino(Movement direction)
 {
-    if (Tetris::CanTetrominoMove(direction)) {
-        tetromino.Move(direction);
-    }
+    if (direction == Movement::BOTTOM) {
+        while (Tetris::CanTetrominoMove(Movement::DOWN)) {
+            tetromino.Move(direction);
+        }
+    } else {
+        if (Tetris::CanTetrominoMove(direction)) {
+            tetromino.Move(direction);
+        }
+    } 
 }
 
 void Tetris::Update(sf::Time elapsed)
@@ -30,7 +44,7 @@ void Tetris::Update(sf::Time elapsed)
             tetromino.Update();
         } else {
             this->fixed_tetrominos.push_back(tetromino);
-            tetromino = Tetromino();
+            tetromino = Tetromino(this->tetromino_texture);
             Tetris::CheckLines();
             if (Tetris::IsColliding(tetromino)) {
                 is_game_over = true;
@@ -41,6 +55,13 @@ void Tetris::Update(sf::Time elapsed)
 
 void Tetris::Render(sf::RenderWindow &window)
 {
+    for (int i = 0; i < BOARD_WIDTH; i++) {
+        for (int j = 0; j < BOARD_HEIGHT; j++) {
+            this->background.setPosition({i * this->SIZE + 50, j * this->SIZE + 50});
+            window.draw(this->background);
+        }
+    }
+
     for (auto &fixed_tetromino : this->fixed_tetrominos) {
         fixed_tetromino.Render(window); 
     }
@@ -89,8 +110,6 @@ void Tetris::CheckLines()
                                 return fixed_tetromino.IsEmpty();
                             }),
                             this->fixed_tetrominos.end());
-
-    spdlog::info("Fixed Tetrominos: {}", this->fixed_tetrominos.size());
 }
 
 bool Tetris::CanTetrominoMove(Movement movement)

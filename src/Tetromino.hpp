@@ -27,14 +27,15 @@ enum Movement
     LEFT = 0,
     RIGHT = 1,
     DOWN = 2,
-    ROTATE = 3
+    ROTATE = 3,
+    BOTTOM = 4
 };
 
 class Tetromino
 {
 public:
-    Tetromino(float size = 25.0f);
-    Tetromino(TetrominoType type, float size = 25.0f);
+    Tetromino(const sf::Texture& texture, float size = 25.0f);
+    Tetromino(const sf::Texture& texture, TetrominoType type, float size = 25.0f);
     Tetromino(const Tetromino &tetromino);
     ~Tetromino() = default;
 
@@ -53,8 +54,6 @@ public:
     void RemoveLine(uint8_t line);
     void MovePartsDown(uint8_t line);
 
-    Tetromino operator=(const Tetromino &tetromino);
-
 private:
     TetrominoType m_type;
     float m_size;
@@ -62,9 +61,11 @@ private:
     sf::Vector2i m_coordinates = { 4, -1 };             // Center Coordinate of the block
     std::vector<sf::Vector2i> m_relative_coordinates;   // Relative coordinates of the block parts
 
-    sf::Vector2f m_position = { 0, 50 }; //Used for Render
+    sf::Vector2f m_position = { 50, 50 }; //Used for Render
+    sf::Sprite block_sprite;
 
     void CreateTetromino();
+    void ApplyTexture();
 
     void MoveLeft();
     void MoveRight();
@@ -72,6 +73,5 @@ private:
     void MoveUp();
     void Rotate();
 
-    sf::Color GetColor() const;
     sf::Vector2f GetAbsolutePosition(sf::Vector2i position) const;
 };

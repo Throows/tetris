@@ -10,7 +10,7 @@
 class Application
 {
 public:
-    Application(/* args */);
+    Application();
     ~Application();
 
     int Run();

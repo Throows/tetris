@@ -4,7 +4,7 @@
 class Tetris
 {
 public:
-    Tetris() = default;
+    Tetris();
     ~Tetris() = default;
 
     void Init(sf::Vector2u window_size);
@@ -18,12 +18,14 @@ private:
     static constexpr int BOARD_WIDTH = 10;
     static constexpr int BOARD_HEIGHT = 20;
     static constexpr float SIZE = 25.0f;
-    Tetromino tetromino = Tetromino();
     std::vector<Tetromino> fixed_tetrominos;
     bool is_game_over = false;
 
     sf::Font font;
     sf::Text game_over_text = sf::Text(font, "Game Over", 50);
+    sf::Texture tetromino_texture;
+    Tetromino tetromino = Tetromino(tetromino_texture, SIZE);
+    sf::Sprite background = sf::Sprite(tetromino_texture);
 
     bool IsColliding(Tetromino& new_tetromino);
     void CheckLines();
