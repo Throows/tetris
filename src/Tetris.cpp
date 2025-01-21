@@ -8,7 +8,6 @@ Tetris::Tetris()
     this->background.setTextureRect(sf::IntRect({TetrominoType::SHAPE_MAX * 384, 0}, {384, 384}));
 }
 
-
 void Tetris::Init(sf::Vector2u window_size)
 {
     if (!font.openFromFile("assets/font/CheeseMarket.ttf")) {
@@ -21,14 +20,19 @@ void Tetris::Init(sf::Vector2u window_size)
     sf::Vector2f position = {window_size.x / 2 - this->game_over_text.getGlobalBounds().size.x / 2,
                              window_size.y / 2 - this->game_over_text.getGlobalBounds().size.y / 2};
     this->game_over_text.setPosition(position);
+
+    this->score_text.setPosition({350, 300});
 }
 
 void Tetris::MoveTetromino(Movement direction)
 {
     if (direction == Movement::BOTTOM) {
+        uint8_t movement = 0;
         while (Tetris::CanTetrominoMove(Movement::DOWN)) {
             tetromino.Move(direction);
+            movement++;
         }
+        score += movement + 1;
     } else {
         if (Tetris::CanTetrominoMove(direction)) {
             tetromino.Move(direction);
@@ -51,6 +55,7 @@ void Tetris::Update(sf::Time elapsed)
             }
         }
     }
+    this->score_text.setString("Score: " + std::to_string(score));
 }
 
 void Tetris::Render(sf::RenderWindow &window)
@@ -71,6 +76,7 @@ void Tetris::Render(sf::RenderWindow &window)
     } else {
         tetromino.Render(window);
     }
+    window.draw(this->score_text);
 }
 
 bool Tetris::IsColliding(Tetromino& new_tetromino)
@@ -93,10 +99,12 @@ void Tetris::CheckLines()
         }
     }
 
+    uint8_t lines_full = 0;
     for (uint8_t y = 0; y < BOARD_HEIGHT; y++)
     {
         if (block_per_lines[y] == BOARD_WIDTH)
         {
+            lines_full++;
             for (Tetromino& fixed_tetromino : fixed_tetrominos) {
                 fixed_tetromino.RemoveLine(y);
                 fixed_tetromino.MovePartsDown(y);
@@ -110,6 +118,20 @@ void Tetris::CheckLines()
                                 return fixed_tetromino.IsEmpty();
                             }),
                             this->fixed_tetrominos.end());
+    Tetris::UpdateScore(lines_full);
+}
+
+void Tetris::UpdateScore(uint8_t lines)
+{
+    if (lines == 1) {
+        score += 40;
+    } else if (lines == 2) {
+        score += 100;
+    } else if (lines == 3) {
+        score += 300;
+    } else if (lines == 4) {
+        score += 1200;
+    }
 }
 
 bool Tetris::CanTetrominoMove(Movement movement)
