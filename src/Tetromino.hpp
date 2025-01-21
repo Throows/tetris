@@ -54,6 +54,8 @@ public:
     void RemoveLine(uint8_t line);
     void MovePartsDown(uint8_t line);
 
+    Tetromino &operator=(const Tetromino &tetromino);
+
 private:
     TetrominoType m_type;
     float m_size;

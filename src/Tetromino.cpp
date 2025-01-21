@@ -184,6 +184,21 @@ void Tetromino::MovePartsDown(uint8_t line)
     }
 }
 
+Tetromino& Tetromino::operator=(const Tetromino &tetromino)
+{
+    if (this != &tetromino) {
+        m_type = tetromino.m_type;
+        m_size = tetromino.m_size;
+        m_rotation = tetromino.m_rotation;
+        m_coordinates = tetromino.m_coordinates;
+        m_relative_coordinates = tetromino.m_relative_coordinates;
+        m_position = tetromino.m_position;
+        block_sprite = tetromino.block_sprite;
+        ApplyTexture();
+    }
+    return *this;
+}
+
 sf::Vector2f Tetromino::GetAbsolutePosition(sf::Vector2i position) const
 {
     sf::Vector2f board_position = sf::Vector2f(this->m_coordinates + position) * this->m_size;
