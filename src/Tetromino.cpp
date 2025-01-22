@@ -5,31 +5,36 @@
 #include <random>
 #include <spdlog/spdlog.h>
 
-Tetromino::Tetromino(float size) 
+Tetromino::Tetromino(const sf::Texture& texture, float size) 
     : m_size(size)
+    , block_sprite(texture)
 {
     std::random_device r;
     std::default_random_engine e1(r());
     std::uniform_int_distribution<int> uniform_dist(0, SHAPE_MAX - 1);
     m_type = static_cast<TetrominoType>(uniform_dist(e1));
     Tetromino::CreateTetromino();
+    Tetromino::ApplyTexture();
 }
 
-Tetromino::Tetromino(TetrominoType type, float size)
+Tetromino::Tetromino(const sf::Texture& texture, TetrominoType type, float size)
     : m_type(type)
     , m_size(size)
+    , block_sprite(texture)
 {
     Tetromino::CreateTetromino();
 }
 
 Tetromino::Tetromino(const Tetromino &tetromino)
+    : m_type(tetromino.m_type)
+    , m_size(tetromino.m_size)
+    , m_rotation(tetromino.m_rotation)
+    , m_coordinates(tetromino.m_coordinates)
+    , m_relative_coordinates(tetromino.m_relative_coordinates)
+    , m_position(tetromino.m_position)
+    , block_sprite(tetromino.block_sprite.getTexture())
 {
-    this->m_type = tetromino.m_type;
-    this->m_size = tetromino.m_size;
-    this->m_rotation = tetromino.m_rotation;
-    this->m_coordinates = tetromino.m_coordinates;
-    this->m_relative_coordinates = tetromino.m_relative_coordinates;
-    this->m_position = tetromino.m_position;
+    Tetromino::ApplyTexture();
 }
 
 void Tetromino::Update()
@@ -39,12 +44,15 @@ void Tetromino::Update()
 
 void Tetromino::Render(sf::RenderWindow &window)
 {
+    float offset = 0;
+    if (this->m_coordinates.x == 14 && this->m_type != TetrominoType::CUBE && this->m_type != TetrominoType::BAR) {
+        offset += this->m_size/2.0f;
+    }
+
     for (auto &position : this->m_relative_coordinates)
     {
-        sf::RectangleShape rectangle({this->m_size, this->m_size});
-        rectangle.setFillColor(GetColor());
-        rectangle.setPosition(GetAbsolutePosition(position));
-        window.draw(rectangle);
+        block_sprite.setPosition(GetAbsolutePosition(position) + sf::Vector2f(offset, 0));
+        window.draw(block_sprite);
     }
 }
 
@@ -89,6 +97,7 @@ bool Tetromino::Move(Movement movement) {
         this->MoveRight();
         break;
     case Movement::DOWN:
+    case Movement::BOTTOM:
         this->MoveDown();
         break;
     case Movement::ROTATE:
@@ -121,6 +130,12 @@ bool Tetromino::Revert(Movement movement)
     default:
         break;
     }
+    return true;
+}
+
+bool Tetromino::SetActiveTetromino()
+{
+    this->m_coordinates = {4, -1};
     return true;
 }
 
@@ -180,14 +195,18 @@ void Tetromino::MovePartsDown(uint8_t line)
     }
 }
 
-Tetromino Tetromino::operator=(const Tetromino &tetromino)
+Tetromino& Tetromino::operator=(const Tetromino &tetromino)
 {
-    this->m_type = tetromino.m_type;
-    this->m_size = tetromino.m_size;
-    this->m_rotation = tetromino.m_rotation;
-    this->m_coordinates = tetromino.m_coordinates;
-    this->m_relative_coordinates = tetromino.m_relative_coordinates;
-    this->m_position = tetromino.m_position;
+    if (this != &tetromino) {
+        m_type = tetromino.m_type;
+        m_size = tetromino.m_size;
+        m_rotation = tetromino.m_rotation;
+        m_coordinates = tetromino.m_coordinates;
+        m_relative_coordinates = tetromino.m_relative_coordinates;
+        m_position = tetromino.m_position;
+        block_sprite = tetromino.block_sprite;
+        ApplyTexture();
+    }
     return *this;
 }
 
@@ -208,7 +227,7 @@ void Tetromino::CreateTetromino()
         this->m_relative_coordinates = { {-1, -1}, {0, -1}, {1, -1}, {0, 0} };
         break;
     case CUBE:
-        this->m_relative_coordinates = { {0, 0}, {0, 1}, {1, 0}, {1, 1} };
+        this->m_relative_coordinates = { {0, 0}, {0, -1}, {1, 0}, {1, -1} };
         break;
     case L_SHAPE:
         this->m_relative_coordinates = { {-1, -1}, {0, -1}, {1, -1}, {-1, 0} };
@@ -227,33 +246,8 @@ void Tetromino::CreateTetromino()
     }
 }
 
-sf::Color Tetromino::GetColor() const
+void Tetromino::ApplyTexture()
 {
-    switch (this->m_type)
-    {
-    case BAR:
-        return sf::Color::Cyan;
-        break;
-    case T_SHAPE:
-        return sf::Color(128, 0, 128);   // Purple
-        break;
-    case CUBE:
-        return sf::Color::Yellow;
-        break;
-    case L_SHAPE:
-        return sf::Color(255, 125, 0);  // Orange
-        break;
-    case J_SHAPE:
-        return sf::Color::Blue;
-        break;
-    case Z_SHAPE:
-        return sf::Color::Red;
-        break;
-    case S_SHAPE:
-        return sf::Color::Green;
-        break;
-    default:
-        break;
-    }
-    return sf::Color::White;
+    this->block_sprite.setScale({this->m_size / 384.0f, this->m_size / 384.0f});
+    this->block_sprite.setTextureRect(sf::IntRect({this->m_type * 384, 0}, {384, 384}));
 }

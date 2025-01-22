@@ -2,7 +2,7 @@
 
 Application::Application()
 {
-    m_window.create(sf::VideoMode({10 * 25, 25 * 22}), "Tetris - POO");
+    m_window.create(sf::VideoMode({550, 550}), "Tetris - POO");
     m_window.setFramerateLimit(60);
 }
 
@@ -46,6 +46,8 @@ void Application::ProcessEvents()
                 m_tetris.MoveTetromino(Movement::DOWN);
             else if (keyPressed->code == sf::Keyboard::Key::Up)
                 m_tetris.MoveTetromino(Movement::ROTATE);
+            else if (keyPressed->code == sf::Keyboard::Key::Space)
+                m_tetris.MoveTetromino(Movement::BOTTOM);
             else if (keyPressed->code == sf::Keyboard::Key::Escape)
                 this->m_window.close();
         }
