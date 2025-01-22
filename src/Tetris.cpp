@@ -6,6 +6,7 @@ Tetris::Tetris()
     this->tetromino_texture = sf::Texture("assets/image/tetrominos.png");
     this->background.setScale({this->SIZE / 384.0f, this->SIZE / 384.0f});
     this->background.setTextureRect(sf::IntRect({TetrominoType::SHAPE_MAX * 384, 0}, {384, 384}));
+    this->tetromino.SetActiveTetromino();
 }
 
 void Tetris::Init(sf::Vector2u window_size)
@@ -21,7 +22,7 @@ void Tetris::Init(sf::Vector2u window_size)
                              window_size.y / 2 - this->game_over_text.getGlobalBounds().size.y / 2};
     this->game_over_text.setPosition(position);
 
-    this->score_text.setPosition({350, 300});
+    this->score_text.setPosition({380, 300});
 }
 
 void Tetris::MoveTetromino(Movement direction)
@@ -48,7 +49,9 @@ void Tetris::Update(sf::Time elapsed)
             tetromino.Update();
         } else {
             this->fixed_tetrominos.push_back(tetromino);
-            tetromino = Tetromino(this->tetromino_texture);
+            this->tetromino = this->next_tetromino;
+            this->next_tetromino = Tetromino(this->tetromino_texture);
+            this->tetromino.SetActiveTetromino();
             Tetris::CheckLines();
             if (Tetris::IsColliding(tetromino)) {
                 is_game_over = true;
@@ -57,6 +60,34 @@ void Tetris::Update(sf::Time elapsed)
     }
     this->score_text.setString("Score: " + std::to_string(score));
 }
+
+// 375, 125
+const sf::Vector2f next_tetromino_position[] = {
+    {325, 100},
+    {350, 100},
+    {375, 100},
+    {400, 100},
+    {425, 100},
+    {450, 100},
+    {475, 100},
+    {500, 100},
+    {500, 125},
+    {500, 150},
+    {500, 175},
+    {500, 200},
+    {500, 225},
+    {475, 225},
+    {450, 225},
+    {425, 225},
+    {400, 225},
+    {375, 225},
+    {350, 225},
+    {325, 225},
+    {325, 200},
+    {325, 175},
+    {325, 150},
+    {325, 125}
+};
 
 void Tetris::Render(sf::RenderWindow &window)
 {
@@ -67,6 +98,11 @@ void Tetris::Render(sf::RenderWindow &window)
         }
     }
 
+    for (const auto &position : next_tetromino_position) {
+        this->background.setPosition(position);
+        window.draw(this->background);
+    }
+
     for (auto &fixed_tetromino : this->fixed_tetrominos) {
         fixed_tetromino.Render(window); 
     }
@@ -75,6 +111,7 @@ void Tetris::Render(sf::RenderWindow &window)
         window.draw(this->game_over_text);
     } else {
         tetromino.Render(window);
+        next_tetromino.Render(window);
     }
     window.draw(this->score_text);
 }

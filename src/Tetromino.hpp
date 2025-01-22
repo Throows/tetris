@@ -44,6 +44,7 @@ public:
 
     bool Move(Movement movement);
     bool Revert(Movement movement);
+    bool SetActiveTetromino();
 
     std::vector<sf::Vector2i> GetAbsoluteCoordinates() const;
 
@@ -60,7 +61,7 @@ private:
     TetrominoType m_type;
     float m_size;
     Rotation m_rotation;
-    sf::Vector2i m_coordinates = { 4, -1 };             // Center Coordinate of the block
+    sf::Vector2i m_coordinates = {14, 5};               // Coordinate of next block
     std::vector<sf::Vector2i> m_relative_coordinates;   // Relative coordinates of the block parts
 
     sf::Vector2f m_position = { 50, 50 }; //Used for Render

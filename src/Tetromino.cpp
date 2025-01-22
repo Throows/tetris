@@ -44,9 +44,14 @@ void Tetromino::Update()
 
 void Tetromino::Render(sf::RenderWindow &window)
 {
+    float offset = 0;
+    if (this->m_coordinates.x == 14 && this->m_type != TetrominoType::CUBE && this->m_type != TetrominoType::BAR) {
+        offset += this->m_size/2.0f;
+    }
+
     for (auto &position : this->m_relative_coordinates)
     {
-        block_sprite.setPosition(GetAbsolutePosition(position));
+        block_sprite.setPosition(GetAbsolutePosition(position) + sf::Vector2f(offset, 0));
         window.draw(block_sprite);
     }
 }
@@ -125,6 +130,12 @@ bool Tetromino::Revert(Movement movement)
     default:
         break;
     }
+    return true;
+}
+
+bool Tetromino::SetActiveTetromino()
+{
+    this->m_coordinates = {4, -1};
     return true;
 }
 

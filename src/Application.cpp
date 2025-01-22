@@ -2,7 +2,7 @@
 
 Application::Application()
 {
-    m_window.create(sf::VideoMode({500, 550}), "Tetris - POO");
+    m_window.create(sf::VideoMode({550, 550}), "Tetris - POO");
     m_window.setFramerateLimit(60);
 }
 

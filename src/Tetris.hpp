@@ -26,6 +26,7 @@ private:
     sf::Text score_text = sf::Text(font, "Score: 0", 20);
     sf::Texture tetromino_texture;
     Tetromino tetromino = Tetromino(tetromino_texture, SIZE);
+    Tetromino next_tetromino = Tetromino(tetromino_texture, SIZE);
     sf::Sprite background = sf::Sprite(tetromino_texture);
     int score = 0;
 
