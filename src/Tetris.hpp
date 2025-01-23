@@ -19,6 +19,10 @@ private:
     static constexpr int BOARD_HEIGHT = 20;
     static constexpr float SIZE = 25.0f;
     std::vector<Tetromino> fixed_tetrominos;
+
+    sf::Time elapsed_time = sf::Time::Zero;
+    uint16_t update_number = 0;
+    sf::Time speed_time = sf::milliseconds(500);
     bool is_game_over = false;
 
     sf::Font font;

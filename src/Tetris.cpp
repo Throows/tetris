@@ -43,8 +43,8 @@ void Tetris::MoveTetromino(Movement direction)
 
 void Tetris::Update(sf::Time elapsed)
 {
-    if (elapsed.asMilliseconds() > 800 && !is_game_over) {
-
+    this->elapsed_time += elapsed;
+    if (this->elapsed_time > this->speed_time && !is_game_over) {
         if (Tetris::CanTetrominoMove(Movement::DOWN)) {
             tetromino.Update();
         } else {
@@ -57,8 +57,15 @@ void Tetris::Update(sf::Time elapsed)
                 is_game_over = true;
             }
         }
+        this->score_text.setString("Score: " + std::to_string(score));
+        this->elapsed_time = sf::Time::Zero;
+        this->update_number++;
     }
-    this->score_text.setString("Score: " + std::to_string(score));
+
+    if ((this->update_number * this->speed_time.asSeconds()) >= 20.0 && this->speed_time > sf::milliseconds(100)) {
+        this->speed_time -= sf::milliseconds(50);
+        this->update_number = 0;
+    }
 }
 
 // 375, 125

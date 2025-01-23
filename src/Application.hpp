@@ -23,7 +23,7 @@ private:
 
     void Init();
     void ProcessEvents();
-    void Update();
+    void Update(sf::Time elapsed);
     void Render();
     void Shutdown();
 };

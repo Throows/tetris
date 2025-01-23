@@ -16,8 +16,9 @@ int Application::Run()
 
     while (this->m_window.isOpen())
     {
+        sf::Time elapsed = this->m_clock.restart();
         ProcessEvents();
-        Update();
+        Update(elapsed);
         Render();
     }
 
@@ -54,16 +55,9 @@ void Application::ProcessEvents()
     }
 }
 
-void Application::Update()
+void Application::Update(sf::Time elapsed)
 {
-    // Update the tetris
-    sf::Time elapsed = this->m_clock.getElapsedTime();
     this->m_tetris.Update(elapsed);
-
-    if (elapsed.asMilliseconds() > 800)
-    {
-        this->m_clock.restart();
-    }
 }
 
 void Application::Render()
