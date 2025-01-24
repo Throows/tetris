@@ -1,18 +1,21 @@
 #pragma once
+#include "State.hpp"
+
 #include "Tetromino.hpp"
 
-class Tetris
+class TetrisState : public State
 {
 public:
-    Tetris();
-    ~Tetris() = default;
+    TetrisState(StatesContext& context);
+    ~TetrisState() = default;
 
     void Init(sf::Vector2u window_size);
 
     void MoveTetromino(Movement movement);
 
-    void Update(sf::Time elapsed);
-    void Render(sf::RenderWindow &window);
+    void ProcessEvents(sf::Event& event) override;
+    void Update(sf::Time elapsed) override;
+    void Render(sf::RenderWindow &window) override;
 
 private:
     static constexpr int BOARD_WIDTH = 10;

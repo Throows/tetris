@@ -1,15 +1,19 @@
-#include "Tetris.hpp"
-#include <spdlog/spdlog.h>
+#include "TetrisState.hpp"
+#include <iostream>
 
-Tetris::Tetris()
+#define ASSET_SIZE (384.0f)
+
+TetrisState::TetrisState(StatesContext& context)
+    : State(StateID::GAME, context)
 {
     this->tetromino_texture = sf::Texture("assets/image/tetrominos.png");
-    this->background.setScale({this->SIZE / 384.0f, this->SIZE / 384.0f});
-    this->background.setTextureRect(sf::IntRect({TetrominoType::SHAPE_MAX * 384, 0}, {384, 384}));
+    this->background.setScale({this->SIZE / ASSET_SIZE, this->SIZE / ASSET_SIZE});
+    this->background.setTextureRect(sf::IntRect(sf::Vector2i(TetrominoType::SHAPE_MAX * ASSET_SIZE, 0),
+                                                sf::Vector2i(ASSET_SIZE, ASSET_SIZE)));
     this->tetromino.SetActiveTetromino();
 }
 
-void Tetris::Init(sf::Vector2u window_size)
+void TetrisState::Init(sf::Vector2u window_size)
 {
     if (!font.openFromFile("assets/font/CheeseMarket.ttf")) {
         spdlog::error("Cannot load font !");
@@ -25,35 +29,55 @@ void Tetris::Init(sf::Vector2u window_size)
     this->score_text.setPosition({380, 300});
 }
 
-void Tetris::MoveTetromino(Movement direction)
+void TetrisState::MoveTetromino(Movement direction)
 {
     if (direction == Movement::BOTTOM) {
         uint8_t movement = 0;
-        while (Tetris::CanTetrominoMove(Movement::DOWN)) {
+        while (TetrisState::CanTetrominoMove(Movement::DOWN)) {
             tetromino.Move(direction);
             movement++;
         }
         score += movement + 1;
     } else {
-        if (Tetris::CanTetrominoMove(direction)) {
+        if (TetrisState::CanTetrominoMove(direction)) {
             tetromino.Move(direction);
         }
     } 
 }
 
-void Tetris::Update(sf::Time elapsed)
+void TetrisState::ProcessEvents(sf::Event &event)
+{
+    if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>()) {
+        if (keyPressed->code == sf::Keyboard::Key::Left) 
+                TetrisState::MoveTetromino(Movement::LEFT);
+        else if (keyPressed->code == sf::Keyboard::Key::Right)
+                TetrisState::MoveTetromino(Movement::RIGHT);
+        else if (keyPressed->code == sf::Keyboard::Key::Down)
+                TetrisState::MoveTetromino(Movement::DOWN);
+        else if (keyPressed->code == sf::Keyboard::Key::Up)
+                TetrisState::MoveTetromino(Movement::ROTATE);
+        else if (keyPressed->code == sf::Keyboard::Key::Space)
+                TetrisState::MoveTetromino(Movement::BOTTOM);
+        else if (keyPressed->code == sf::Keyboard::Key::Escape){
+            State::PushState(StateID::MAIN_MENU);
+            State::PopState();
+        }
+    }
+}
+
+void TetrisState::Update(sf::Time elapsed)
 {
     this->elapsed_time += elapsed;
     if (this->elapsed_time > this->speed_time && !is_game_over) {
-        if (Tetris::CanTetrominoMove(Movement::DOWN)) {
+        if (TetrisState::CanTetrominoMove(Movement::DOWN)) {
             tetromino.Update();
         } else {
             this->fixed_tetrominos.push_back(tetromino);
             this->tetromino = this->next_tetromino;
             this->next_tetromino = Tetromino(this->tetromino_texture);
             this->tetromino.SetActiveTetromino();
-            Tetris::CheckLines();
-            if (Tetris::IsColliding(tetromino)) {
+            TetrisState::CheckLines();
+            if (TetrisState::IsColliding(tetromino)) {
                 is_game_over = true;
             }
         }
@@ -96,7 +120,7 @@ const sf::Vector2f next_tetromino_position[] = {
     {325, 125}
 };
 
-void Tetris::Render(sf::RenderWindow &window)
+void TetrisState::Render(sf::RenderWindow &window)
 {
     for (int i = 0; i < BOARD_WIDTH; i++) {
         for (int j = 0; j < BOARD_HEIGHT; j++) {
@@ -123,7 +147,7 @@ void Tetris::Render(sf::RenderWindow &window)
     window.draw(this->score_text);
 }
 
-bool Tetris::IsColliding(Tetromino& new_tetromino)
+bool TetrisState::IsColliding(Tetromino& new_tetromino)
 {
     for (const Tetromino& fixed_tetromino : fixed_tetrominos) {   
         if (new_tetromino.IsColliding(fixed_tetromino)) {
@@ -133,7 +157,7 @@ bool Tetris::IsColliding(Tetromino& new_tetromino)
     return false;
 }
 
-void Tetris::CheckLines()
+void TetrisState::CheckLines()
 {
     uint8_t block_per_lines[BOARD_HEIGHT] = {0};
 
@@ -162,10 +186,10 @@ void Tetris::CheckLines()
                                 return fixed_tetromino.IsEmpty();
                             }),
                             this->fixed_tetrominos.end());
-    Tetris::UpdateScore(lines_full);
+    TetrisState::UpdateScore(lines_full);
 }
 
-void Tetris::UpdateScore(uint8_t lines)
+void TetrisState::UpdateScore(uint8_t lines)
 {
     if (lines == 1) {
         score += 40;
@@ -178,10 +202,10 @@ void Tetris::UpdateScore(uint8_t lines)
     }
 }
 
-bool Tetris::CanTetrominoMove(Movement movement)
+bool TetrisState::CanTetrominoMove(Movement movement)
 {
     Tetromino next_position = tetromino;
     next_position.Move(movement);
 
-    return !Tetris::IsColliding(next_position) && !next_position.IsOutOfBoard(BOARD_WIDTH, BOARD_HEIGHT);
+    return !TetrisState::IsColliding(next_position) && !next_position.IsOutOfBoard(BOARD_WIDTH, BOARD_HEIGHT);
 }
