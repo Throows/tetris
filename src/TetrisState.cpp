@@ -79,6 +79,7 @@ void TetrisState::Update(sf::Time elapsed)
             TetrisState::CheckLines();
             if (TetrisState::IsColliding(tetromino)) {
                 is_game_over = true;
+                this->fixed_tetrominos.pop_back();
             }
         }
         this->score_text.setString("Score: " + std::to_string(score));
@@ -122,27 +123,31 @@ const sf::Vector2f next_tetromino_position[] = {
 
 void TetrisState::Render(sf::RenderWindow &window)
 {
+    // Border of next Tetromino
     for (int i = 0; i < BOARD_WIDTH; i++) {
         for (int j = 0; j < BOARD_HEIGHT; j++) {
-            this->background.setPosition({i * this->SIZE + 50, j * this->SIZE + 50});
+            this->background.setPosition({i * this->SIZE + this->m_board_position.x, 
+                                          j * this->SIZE + m_board_position.y});
             window.draw(this->background);
         }
     }
 
+    // Board background
     for (const auto &position : next_tetromino_position) {
         this->background.setPosition(position);
         window.draw(this->background);
     }
 
+    // Fixed Tetromino
     for (auto &fixed_tetromino : this->fixed_tetrominos) {
-        fixed_tetromino.Render(window); 
+        fixed_tetromino.Render(window, this->m_board_position); 
     }
 
     if (is_game_over) {
         window.draw(this->game_over_text);
     } else {
-        tetromino.Render(window);
-        next_tetromino.Render(window);
+        tetromino.Render(window, this->m_board_position);
+        next_tetromino.Render(window, this->m_board_position);
     }
     window.draw(this->score_text);
 }

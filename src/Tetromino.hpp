@@ -40,7 +40,7 @@ public:
     ~Tetromino() = default;
 
     void Update();
-    void Render(sf::RenderWindow &window);
+    void Render(sf::RenderWindow &window, sf::Vector2f position = {0, 0});
 
     bool Move(Movement movement);
     bool Revert(Movement movement);
@@ -64,7 +64,6 @@ private:
     sf::Vector2i m_coordinates = {14, 5};               // Coordinate of next block
     std::vector<sf::Vector2i> m_relative_coordinates;   // Relative coordinates of the block parts
 
-    sf::Vector2f m_position = { 50, 50 }; //Used for Render
     sf::Sprite block_sprite;
 
     void CreateTetromino();
@@ -75,6 +74,4 @@ private:
     void MoveDown();
     void MoveUp();
     void Rotate();
-
-    sf::Vector2f GetAbsolutePosition(sf::Vector2i position) const;
 };

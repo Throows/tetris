@@ -22,6 +22,7 @@ private:
     static constexpr int BOARD_HEIGHT = 20;
     static constexpr float SIZE = 25.0f;
     std::vector<Tetromino> fixed_tetrominos;
+    sf::Vector2f m_board_position = { 50, 50 };
 
     sf::Time elapsed_time = sf::Time::Zero;
     uint16_t update_number = 0;

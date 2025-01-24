@@ -31,7 +31,6 @@ Tetromino::Tetromino(const Tetromino &tetromino)
     , m_rotation(tetromino.m_rotation)
     , m_coordinates(tetromino.m_coordinates)
     , m_relative_coordinates(tetromino.m_relative_coordinates)
-    , m_position(tetromino.m_position)
     , block_sprite(tetromino.block_sprite.getTexture())
 {
     Tetromino::ApplyTexture();
@@ -42,16 +41,17 @@ void Tetromino::Update()
     Tetromino::MoveDown();
 }
 
-void Tetromino::Render(sf::RenderWindow &window)
+void Tetromino::Render(sf::RenderWindow &window, sf::Vector2f position)
 {
-    float offset = 0;
     if (this->m_coordinates.x == 14 && this->m_type != TetrominoType::CUBE && this->m_type != TetrominoType::BAR) {
-        offset += this->m_size/2.0f;
+        position.x += this->m_size/2.0f;
     }
 
-    for (auto &position : this->m_relative_coordinates)
+    for (auto &relative_position : this->m_relative_coordinates)
     {
-        block_sprite.setPosition(GetAbsolutePosition(position) + sf::Vector2f(offset, 0));
+        sf::Vector2f board_position = sf::Vector2f(this->m_coordinates + relative_position) * this->m_size;
+        board_position += position;
+        block_sprite.setPosition(board_position);
         window.draw(block_sprite);
     }
 }
@@ -203,17 +203,10 @@ Tetromino& Tetromino::operator=(const Tetromino &tetromino)
         m_rotation = tetromino.m_rotation;
         m_coordinates = tetromino.m_coordinates;
         m_relative_coordinates = tetromino.m_relative_coordinates;
-        m_position = tetromino.m_position;
         block_sprite = tetromino.block_sprite;
         ApplyTexture();
     }
     return *this;
-}
-
-sf::Vector2f Tetromino::GetAbsolutePosition(sf::Vector2i position) const
-{
-    sf::Vector2f board_position = sf::Vector2f(this->m_coordinates + position) * this->m_size;
-    return sf::Vector2f(this->m_position + board_position);
 }
 
 void Tetromino::CreateTetromino()
