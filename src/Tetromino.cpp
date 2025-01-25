@@ -123,7 +123,11 @@ bool Tetromino::Revert(Movement movement)
 
 bool Tetromino::SetActiveTetromino()
 {
-    this->m_coordinates = {4, -1};
+    if (this->m_type == TetrominoType::CUBE || this->m_type == TetrominoType::BAR) {
+        this->m_coordinates = {5, -1};
+    } else {
+        this->m_coordinates = {4, -1};
+    }
     return true;
 }
 
