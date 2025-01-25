@@ -17,7 +17,7 @@ MenuState::MenuState(StatesContext& context, RessourceManager& ressource_manager
     start_btn.SetActiveColor(sf::Color::Blue);
     start_btn.SetCallback([this](){
         PushState(StateID::GAME);
-        PopState();
+        PopState(State::GetStateID());
     });
     m_buttons.push_back(start_btn);
 }
@@ -39,26 +39,28 @@ void MenuState::Init(sf::Vector2u window_size)
     m_menu_tetrominos.push_back(Tetromino(texture, {3, 450/25}, TetrominoType::Z_SHAPE, 25.0f, Rotation::ROTATION_0));
 }
 
-void MenuState::ProcessEvents(sf::Event &event)
+bool MenuState::ProcessEvents(sf::Event &event)
 {
     if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>()) {
         if (keyPressed->code == sf::Keyboard::Key::Escape) {
-            PopState();
+            PopState(State::GetStateID());
         } else if (keyPressed->code == sf::Keyboard::Key::Space) {
             PushState(StateID::GAME);
-            PopState();
+            PopState(State::GetStateID());
         }
     }
     for (auto& button : m_buttons) {
         button.ProcessEvents(event);
     }
+    return true;
 }
 
-void MenuState::Update(sf::Time elapsed)
+bool MenuState::Update(sf::Time elapsed)
 {
     for (auto& button : m_buttons) {
         button.Update(elapsed);
     }
+    return true;
 }
 
 void MenuState::Render(sf::RenderWindow &window)

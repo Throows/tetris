@@ -11,7 +11,8 @@ enum StateID {
     SPLASH,
     MAIN_MENU,
     GAME,
-    GAME_OVER
+    PAUSE,
+    GAME_OVER,
 };
 
 class State;
@@ -39,8 +40,8 @@ public:
         : m_state_id(id), m_states_context(context), m_ressources(ressources) {};
     virtual ~State() = default;
 
-    virtual void ProcessEvents(sf::Event& event) = 0;
-    virtual void Update(sf::Time elapsed) = 0;
+    virtual bool ProcessEvents(sf::Event& event) = 0;
+    virtual bool Update(sf::Time elapsed) = 0;
     virtual void Render(sf::RenderWindow &window) = 0;
 
     StateID GetStateID() { return this->m_state_id; }
@@ -51,8 +52,8 @@ public:
         this->m_states_context.states_changes.push_back({StatesContext::StateChange::Action::PUSH, state_id});
     }
 
-    void PopState() {
-        this->m_states_context.states_changes.push_back({StatesContext::StateChange::Action::POP, m_state_id});
+    void PopState(StateID state_id) {
+        this->m_states_context.states_changes.push_back({StatesContext::StateChange::Action::POP, state_id});
     }
 
 private:

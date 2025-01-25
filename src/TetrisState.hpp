@@ -14,8 +14,8 @@ public:
 
     void MoveTetromino(Movement movement);
 
-    void ProcessEvents(sf::Event& event) override;
-    void Update(sf::Time elapsed) override;
+    bool ProcessEvents(sf::Event& event) override;
+    bool Update(sf::Time elapsed) override;
     void Render(sf::RenderWindow &window) override;
 
 private:

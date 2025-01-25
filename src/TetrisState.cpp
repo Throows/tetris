@@ -47,7 +47,7 @@ void TetrisState::MoveTetromino(Movement direction)
     } 
 }
 
-void TetrisState::ProcessEvents(sf::Event &event)
+bool TetrisState::ProcessEvents(sf::Event &event)
 {
     if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>()) {
         if (keyPressed->code == sf::Keyboard::Key::Left) 
@@ -61,13 +61,13 @@ void TetrisState::ProcessEvents(sf::Event &event)
         else if (keyPressed->code == sf::Keyboard::Key::Space)
                 TetrisState::MoveTetromino(Movement::BOTTOM);
         else if (keyPressed->code == sf::Keyboard::Key::Escape){
-            State::PushState(StateID::MAIN_MENU);
-            State::PopState();
+            State::PushState(StateID::PAUSE);
         }
     }
+    return true;
 }
 
-void TetrisState::Update(sf::Time elapsed)
+bool TetrisState::Update(sf::Time elapsed)
 {
     this->elapsed_time += elapsed;
     if (this->elapsed_time > this->speed_time && !is_game_over) {
@@ -93,6 +93,7 @@ void TetrisState::Update(sf::Time elapsed)
         this->speed_time -= sf::milliseconds(50);
         this->update_number = 0;
     }
+    return true;
 }
 
 // 375, 125
