@@ -1,4 +1,5 @@
 #pragma once
+#include <random>
 #include "State.hpp"
 
 #include "Tetromino.hpp"
@@ -23,6 +24,7 @@ private:
     static constexpr float SIZE = 25.0f;
     std::vector<Tetromino> fixed_tetrominos;
     sf::Vector2f m_board_position = { 50, 50 };
+    std::random_device r;
 
     sf::Time elapsed_time = sf::Time::Zero;
     uint16_t update_number = 0;
@@ -42,5 +44,6 @@ private:
     void UpdateScore(uint8_t lines);
 
     bool CanTetrominoMove(Movement movement);
+    Tetromino CreateTetromino();
 
 };

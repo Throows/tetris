@@ -2,24 +2,9 @@
 
 #include <stdlib.h>
 #include <iostream>
-#include <random>
 #include <spdlog/spdlog.h>
 
-Tetromino::Tetromino(const sf::Texture& texture, sf::Vector2i coordinates, float size) 
-    : m_size(size)
-    , m_rotation(Rotation::ROTATION_0)
-    , m_coordinates(coordinates)
-    , block_sprite(texture)
-{
-    std::random_device r;
-    std::default_random_engine e1(r());
-    std::uniform_int_distribution<int> uniform_dist(0, SHAPE_MAX - 1);
-    m_type = static_cast<TetrominoType>(uniform_dist(e1));
-    Tetromino::CreateTetromino();
-    Tetromino::ApplyTexture();
-}
-
-Tetromino::Tetromino(const sf::Texture& texture, Rotation rotation, sf::Vector2i coordinates, TetrominoType type, float size)
+Tetromino::Tetromino(const sf::Texture& texture, sf::Vector2i coordinates, TetrominoType type, float size, Rotation rotation)
     : m_type(type)
     , m_size(size)
     , m_rotation(rotation)
@@ -27,6 +12,7 @@ Tetromino::Tetromino(const sf::Texture& texture, Rotation rotation, sf::Vector2i
     , block_sprite(texture)
 {
     Tetromino::CreateTetromino();
+    Tetromino::ApplyTexture();
 }
 
 Tetromino::Tetromino(const Tetromino &tetromino)
@@ -77,6 +63,9 @@ void Tetromino::MoveUp()
 
 void Tetromino::Rotate()
 {
+    if (this->m_type == TetrominoType::CUBE)
+        return;
+
     // Rotate anti-clockwise
     for (auto &position : this->m_relative_coordinates) {
         int x = position.x;
@@ -213,30 +202,31 @@ void Tetromino::CreateTetromino()
     switch (this->m_type)
     {
     case BAR:
-        this->m_relative_coordinates = { {-1, -1}, {-0, -1}, {1, -1}, {2, -1} };
+        this->m_relative_coordinates = { {-2, 0}, {-1, 0}, {0, 0}, {1, 0} };
         break;
     case T_SHAPE:
-        this->m_relative_coordinates = { {-1, -1}, {0, -1}, {1, -1}, {0, 0} };
+        this->m_relative_coordinates = {{0 , -1}, {-1, 0}, {1, 0}, {0, 0} };
         break;
     case CUBE:
-        this->m_relative_coordinates = { {0, 0}, {0, -1}, {1, 0}, {1, -1} };
+        this->m_relative_coordinates = { {-1, -1}, {0, -1}, {0, 0}, {-1, 0} };
         break;
     case L_SHAPE:
-        this->m_relative_coordinates = { {-1, -1}, {0, -1}, {1, -1}, {-1, 0} };
+        this->m_relative_coordinates = { {-1, 0}, {0, 0}, {1, 0}, {1, -1} };
         break;
     case J_SHAPE:
-        this->m_relative_coordinates = { {-1, -1}, {0, -1}, {1, -1}, {1, 0} };
+        this->m_relative_coordinates = { {-1, -1}, {-1, 0}, {0, 0}, {1, 0} };
         break;
     case Z_SHAPE: 
         this->m_relative_coordinates = { {-1, -1}, {0, -1}, {0, 0}, {1, 0} };
         break;
     case S_SHAPE:
-        this->m_relative_coordinates = { {1, -1}, {0, -1}, {0, 0}, {-1, 0} };
+        this->m_relative_coordinates = { {-1, 0}, {0, 0}, {0, -1}, {1, -1} };
         break;
     default:
         break;
     }
-
+    
+    if (this->m_type == TetrominoType::CUBE) return;
     for (int i = 0; i < static_cast<int>(this->m_rotation); i++) {
         for (auto &position : this->m_relative_coordinates) {
             int x = position.x;
