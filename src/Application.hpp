@@ -1,11 +1,9 @@
 #pragma once
 
 #include <spdlog/spdlog.h>
-#include <SFML/Window.hpp>
-#include <SFML/Audio.hpp>
-#include <SFML/Graphics.hpp>
-#include <SFML/System.hpp>
-#include "Tetris.hpp"
+#include <functional>
+#include <map>
+#include "State.hpp"
 
 class Application
 {
@@ -17,15 +15,21 @@ public:
 
 private:
     sf::RenderWindow m_window;
-    Tetris m_tetris;
     sf::Clock m_clock;
     sf::Time m_elapsed;
 
+    StatesContext m_states_context;
+    RessourceManager m_ressource_manager;
+
     void Init();
     void ProcessEvents();
-    void Update();
+    void Update(sf::Time elapsed);
+    void UpdateStates();
     void Render();
     void Shutdown();
+
+    void InitAssets();
+    void InitStates();
 };
 
 

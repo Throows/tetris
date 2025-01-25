@@ -1,9 +1,12 @@
 #include "Application.hpp"
+#include "MenuState.hpp"
+#include "TetrisState.hpp"
 
 Application::Application()
 {
-    m_window.create(sf::VideoMode({550, 550}), "Tetris - POO");
+    m_window.create(sf::VideoMode({550, 550}), "Tetris - The Game");
     m_window.setFramerateLimit(60);
+    Application::Init();
 }
 
 Application::~Application()
@@ -12,12 +15,11 @@ Application::~Application()
 
 int Application::Run()
 {
-    Application::Init();
-
     while (this->m_window.isOpen())
     {
+        sf::Time elapsed = this->m_clock.restart();
         ProcessEvents();
-        Update();
+        Update(elapsed);
         Render();
     }
 
@@ -27,7 +29,11 @@ int Application::Run()
 
 void Application::Init()
 {
-    this->m_tetris.Init(this->m_window.getSize());
+    Application::InitAssets();
+    Application::InitStates();
+    // Load First State
+    auto stateFactory = this->m_states_context.states_map.at(StateID::MAIN_MENU);
+    this->m_states_context.states_vec.push_back(stateFactory());
 }
 
 void Application::ProcessEvents() 
@@ -37,32 +43,45 @@ void Application::ProcessEvents()
         // Close window: exit
         if (event->is<sf::Event::Closed>()) {
             this->m_window.close();
-        } else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
-            if (keyPressed->code == sf::Keyboard::Key::Left) 
-                m_tetris.MoveTetromino(Movement::LEFT);
-            else if (keyPressed->code == sf::Keyboard::Key::Right)
-                m_tetris.MoveTetromino(Movement::RIGHT);
-            else if (keyPressed->code == sf::Keyboard::Key::Down)
-                m_tetris.MoveTetromino(Movement::DOWN);
-            else if (keyPressed->code == sf::Keyboard::Key::Up)
-                m_tetris.MoveTetromino(Movement::ROTATE);
-            else if (keyPressed->code == sf::Keyboard::Key::Space)
-                m_tetris.MoveTetromino(Movement::BOTTOM);
-            else if (keyPressed->code == sf::Keyboard::Key::Escape)
-                this->m_window.close();
+        } 
+        if (event.has_value()) {
+            sf::Event event_type = event.value();
+            for (auto& state : this->m_states_context.states_vec) {
+                state->ProcessEvents(event_type);
+            }
         }
     }
+    Application::UpdateStates();
 }
 
-void Application::Update()
+void Application::Update(sf::Time elapsed)
 {
-    // Update the tetris
-    sf::Time elapsed = this->m_clock.getElapsedTime();
-    this->m_tetris.Update(elapsed);
+    for (auto& state : this->m_states_context.states_vec) {
+        state->Update(elapsed);
+    }
 
-    if (elapsed.asMilliseconds() > 800)
-    {
-        this->m_clock.restart();
+    Application::UpdateStates();
+}
+
+void Application::UpdateStates()
+{
+    for (auto& state_in_change : this->m_states_context.states_changes) {
+        if (state_in_change.action == StatesContext::StateChange::Action::PUSH) {
+            auto stateFactory = this->m_states_context.states_map.at(state_in_change.state_id);
+            this->m_states_context.states_vec.push_back(stateFactory());
+        } else if (state_in_change.action == StatesContext::StateChange::Action::POP) {
+            this->m_states_context.states_vec.erase(
+                std::remove_if(this->m_states_context.states_vec.begin(),
+                            this->m_states_context.states_vec.end(),
+                            [state_in_change](std::unique_ptr<State>& state) {
+                                return state.get()->GetStateID() == state_in_change.state_id;
+                            }),
+                            this->m_states_context.states_vec.end());
+        }
+    }
+    this->m_states_context.states_changes.clear();
+    if (this->m_states_context.states_vec.empty()) {
+        this->m_window.close();
     }
 }
 
@@ -70,7 +89,9 @@ void Application::Render()
 {
     this->m_window.clear(sf::Color::Black);
  
-    this->m_tetris.Render(this->m_window);
+    for (auto& state : this->m_states_context.states_vec) {
+        state->Render(this->m_window);
+    }
  
     // Update the window
     this->m_window.display();
@@ -78,4 +99,24 @@ void Application::Render()
 
 void Application::Shutdown()
 {
+}
+
+void Application::InitAssets()
+{
+    this->m_ressource_manager.LoadTexture(TexturesID::TETROMINO, "assets/image/tetrominos.png");
+    this->m_ressource_manager.LoadFont(FontsID::CHEESE_MARKET, "assets/font/CheeseMarket.ttf");
+}
+
+void Application::InitStates()
+{
+    this->m_states_context.states_map.emplace(StateID::MAIN_MENU,[this]() { 
+            auto state = std::make_unique<MenuState>(this->m_states_context, this->m_ressource_manager);
+            state->Init(this->m_window.getSize());
+            return state;
+        });
+    this->m_states_context.states_map.emplace(StateID::GAME,[this]() { 
+            auto state = std::make_unique<TetrisState>(this->m_states_context, this->m_ressource_manager);
+            state->Init(this->m_window.getSize());
+            return state;
+        });
 }
