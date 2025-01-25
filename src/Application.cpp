@@ -1,10 +1,12 @@
 #include "Application.hpp"
 #include "MenuState.hpp"
 #include "TetrisState.hpp"
+#include "PauseState.hpp"
+#include "GameOverState.hpp"
 
 Application::Application()
 {
-    m_window.create(sf::VideoMode({550, 550}), "Tetris - The Game");
+    m_window.create(sf::VideoMode({550, 550}), "Tetris - The Game", sf::Style::Titlebar, sf::State::Windowed);
     m_window.setFramerateLimit(60);
     Application::Init();
 }
@@ -46,8 +48,10 @@ void Application::ProcessEvents()
         } 
         if (event.has_value()) {
             sf::Event event_type = event.value();
-            for (auto& state : this->m_states_context.states_vec) {
-                state->ProcessEvents(event_type);
+            
+            for (auto it = this->m_states_context.states_vec.rbegin(); it != this->m_states_context.states_vec.rend(); ++it) {
+                if (!(*it)->ProcessEvents(event_type)) 
+                    break;
             }
         }
     }
@@ -56,10 +60,10 @@ void Application::ProcessEvents()
 
 void Application::Update(sf::Time elapsed)
 {
-    for (auto& state : this->m_states_context.states_vec) {
-        state->Update(elapsed);
+    for (auto it = this->m_states_context.states_vec.rbegin(); it != this->m_states_context.states_vec.rend(); ++it) {
+        if (!(*it)->Update(elapsed))
+            break;
     }
-
     Application::UpdateStates();
 }
 
@@ -116,6 +120,18 @@ void Application::InitStates()
         });
     this->m_states_context.states_map.emplace(StateID::GAME,[this]() { 
             auto state = std::make_unique<TetrisState>(this->m_states_context, this->m_ressource_manager);
+            state->Init(this->m_window.getSize());
+            return state;
+        });
+    
+    this->m_states_context.states_map.emplace(StateID::PAUSE,[this]() { 
+            auto state = std::make_unique<PauseState>(this->m_states_context, this->m_ressource_manager);
+            state->Init(this->m_window.getSize());
+            return state;
+        });
+
+    this->m_states_context.states_map.emplace(StateID::GAME_OVER,[this]() { 
+            auto state = std::make_unique<GameOverState>(this->m_states_context, this->m_ressource_manager);
             state->Init(this->m_window.getSize());
             return state;
         });

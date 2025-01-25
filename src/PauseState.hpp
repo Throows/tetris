@@ -1,21 +1,21 @@
-#pragma once
+#pragma once 
+
 #include "State.hpp"
-#include "Tetromino.hpp"
 #include "Button.hpp"
 
-class MenuState : public State
+class PauseState : public State
 {
 public:
-    MenuState(StatesContext& context, RessourceManager& ressource_manager);
-    ~MenuState() {};
+    PauseState(StatesContext& context, RessourceManager& ressources);
 
     void Init(sf::Vector2u window_size);
+
     bool ProcessEvents(sf::Event& event) override;
     bool Update(sf::Time elapsed) override;
     void Render(sf::RenderWindow &window) override;
 
 private:
-    sf::Text m_title;
-    std::vector<Tetromino> m_menu_tetrominos;
+    sf::Text m_paused_text;
     std::vector<Button> m_buttons;
+    sf::RectangleShape m_background;
 };

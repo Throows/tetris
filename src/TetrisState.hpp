@@ -14,8 +14,8 @@ public:
 
     void MoveTetromino(Movement movement);
 
-    void ProcessEvents(sf::Event& event) override;
-    void Update(sf::Time elapsed) override;
+    bool ProcessEvents(sf::Event& event) override;
+    bool Update(sf::Time elapsed) override;
     void Render(sf::RenderWindow &window) override;
 
 private:
@@ -29,7 +29,6 @@ private:
     sf::Time elapsed_time = sf::Time::Zero;
     uint16_t update_number = 0;
     sf::Time speed_time = sf::milliseconds(500);
-    bool is_game_over = false;
     int score = 0;
 
     sf::Text game_over_text;
