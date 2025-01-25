@@ -30,13 +30,13 @@ void MenuState::Init(sf::Vector2u window_size)
 
     // TODO: (Later on) Make a replay file and play the game in the menu
     sf::Texture& texture = State::GetTexture(TexturesID::TETROMINO);
-    m_menu_tetrominos.push_back(Tetromino(texture, Rotation::ROTATION_0, {1, 550/25}, TetrominoType::BAR)); // TODO: Investigate why 0 coordinate is outside
-    m_menu_tetrominos.push_back(Tetromino(texture, Rotation::ROTATION_270, {1, 475/25}, TetrominoType::T_SHAPE));
-    m_menu_tetrominos.push_back(Tetromino(texture, Rotation::ROTATION_90, {1, 475/25}, TetrominoType::J_SHAPE));
-    m_menu_tetrominos.push_back(Tetromino(texture, Rotation::ROTATION_0, {3, 500/25}, TetrominoType::CUBE));
-    m_menu_tetrominos.push_back(Tetromino(texture, Rotation::ROTATION_90, {0, 425/25}, TetrominoType::S_SHAPE));
-    m_menu_tetrominos.push_back(Tetromino(texture, Rotation::ROTATION_90, {4, 500/25}, TetrominoType::J_SHAPE));
-    m_menu_tetrominos.push_back(Tetromino(texture, Rotation::ROTATION_0, {3, 450/25}, TetrominoType::Z_SHAPE));
+    m_menu_tetrominos.push_back(Tetromino(texture, {2, 525/25}, TetrominoType::BAR,     25.0f, Rotation::ROTATION_0));
+    m_menu_tetrominos.push_back(Tetromino(texture, {0, 475/25}, TetrominoType::T_SHAPE, 25.0f, Rotation::ROTATION_90));
+    m_menu_tetrominos.push_back(Tetromino(texture, {2, 475/25}, TetrominoType::J_SHAPE, 25.0f, Rotation::ROTATION_270));
+    m_menu_tetrominos.push_back(Tetromino(texture, {4, 500/25}, TetrominoType::CUBE   , 25.0f, Rotation::ROTATION_0));
+    m_menu_tetrominos.push_back(Tetromino(texture, {0, 425/25}, TetrominoType::S_SHAPE, 25.0f, Rotation::ROTATION_90));
+    m_menu_tetrominos.push_back(Tetromino(texture, {5, 500/25}, TetrominoType::J_SHAPE, 25.0f, Rotation::ROTATION_270));
+    m_menu_tetrominos.push_back(Tetromino(texture, {3, 450/25}, TetrominoType::Z_SHAPE, 25.0f, Rotation::ROTATION_0));
 }
 
 void MenuState::ProcessEvents(sf::Event &event)

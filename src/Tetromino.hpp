@@ -3,23 +3,23 @@
 #include <SFML/Graphics.hpp>
 #include <map>
 
-enum TetrominoType 
+enum TetrominoType : int
 {
-    BAR = 0,
-    T_SHAPE,
-    CUBE,
-    L_SHAPE,
-    J_SHAPE,
-    Z_SHAPE,
-    S_SHAPE,
-    SHAPE_MAX
+    BAR         = 0,
+    T_SHAPE     = 1,
+    CUBE        = 2,
+    L_SHAPE     = 3,
+    J_SHAPE     = 4,
+    Z_SHAPE     = 5,
+    S_SHAPE     = 6,
+    SHAPE_MAX   = 7,
 };
 
-enum Rotation {
-    ROTATION_0 = 0,
-    ROTATION_90,
-    ROTATION_180,
-    ROTATION_270
+enum Rotation : int {
+    ROTATION_0      = 0,
+    ROTATION_90     = 1,
+    ROTATION_180    = 2,
+    ROTATION_270    = 3
 };
 
 enum Movement
@@ -34,8 +34,7 @@ enum Movement
 class Tetromino
 {
 public:
-    Tetromino(const sf::Texture& texture, sf::Vector2i coordinates, float size = 25.0f);
-    Tetromino(const sf::Texture& texture, Rotation rotation, sf::Vector2i coordinates, TetrominoType type, float size = 25.0f);
+    Tetromino(const sf::Texture& texture, sf::Vector2i coordinates, TetrominoType type, float size = 25.0f,  Rotation rotation = Rotation::ROTATION_0);
     Tetromino(const Tetromino &tetromino);
     ~Tetromino() = default;
 

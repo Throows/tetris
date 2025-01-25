@@ -7,16 +7,20 @@ TetrisState::TetrisState(StatesContext& context, RessourceManager& ressource_man
     : State(StateID::GAME, context, ressource_manager)
     , game_over_text(State::GetFont(FontsID::CHEESE_MARKET), "Game Over", 50)
     , score_text(State::GetFont(FontsID::CHEESE_MARKET), "Score: 0", 20)
-    , tetromino(State::GetTexture(TexturesID::TETROMINO), {4, -1}, SIZE)
-    , next_tetromino(State::GetTexture(TexturesID::TETROMINO), {14, 5}, SIZE)
+    , tetromino(TetrisState::CreateTetromino())
+    , next_tetromino(TetrisState::CreateTetromino())
     , background(State::GetTexture(TexturesID::TETROMINO))
 {
     this->background.setScale({this->SIZE / ASSET_SIZE, this->SIZE / ASSET_SIZE});
     this->background.setTextureRect(sf::IntRect(sf::Vector2i(static_cast<int>(TetrominoType::SHAPE_MAX) * ASSET_SIZE, 0),
                                                 sf::Vector2i(ASSET_SIZE, ASSET_SIZE)));
 
+    this->tetromino.SetActiveTetromino();
+
     this->game_over_text.setFillColor(sf::Color::Red);
     this->score_text.setFillColor(sf::Color::White);
+    std::seed_seq seed{r(), r(), r(), r(), r(), r(), r(), r()};
+    std::mt19937 gen(seed);
 }
 
 void TetrisState::Init(sf::Vector2u window_size)
@@ -72,7 +76,7 @@ void TetrisState::Update(sf::Time elapsed)
         } else {
             this->fixed_tetrominos.push_back(tetromino);
             this->tetromino = this->next_tetromino;
-            this->next_tetromino = Tetromino(State::GetTexture(TexturesID::TETROMINO), {14, 5}, SIZE);
+            this->next_tetromino = TetrisState::CreateTetromino();
             this->tetromino.SetActiveTetromino();
             TetrisState::CheckLines();
             if (TetrisState::IsColliding(tetromino)) {
@@ -85,7 +89,7 @@ void TetrisState::Update(sf::Time elapsed)
         this->update_number++;
     }
 
-    if ((this->update_number * this->speed_time.asSeconds()) >= 20.0 && this->speed_time > sf::milliseconds(100)) {
+    if ((this->update_number * this->speed_time.asSeconds()) >= 60.0 && this->speed_time > sf::milliseconds(200)) {
         this->speed_time -= sf::milliseconds(50);
         this->update_number = 0;
     }
@@ -93,7 +97,6 @@ void TetrisState::Update(sf::Time elapsed)
 
 // 375, 125
 const sf::Vector2f next_tetromino_position[] = {
-    {325, 100},
     {350, 100},
     {375, 100},
     {400, 100},
@@ -112,11 +115,10 @@ const sf::Vector2f next_tetromino_position[] = {
     {400, 225},
     {375, 225},
     {350, 225},
-    {325, 225},
-    {325, 200},
-    {325, 175},
-    {325, 150},
-    {325, 125}
+    {350, 200},
+    {350, 175},
+    {350, 150},
+    {350, 125}
 };
 
 void TetrisState::Render(sf::RenderWindow &window)
@@ -145,7 +147,7 @@ void TetrisState::Render(sf::RenderWindow &window)
         window.draw(this->game_over_text);
     } else {
         tetromino.Render(window, this->m_board_position);
-        if (next_tetromino.GetType() != TetrominoType::BAR && next_tetromino.GetType() != TetrominoType::CUBE) {
+        if (next_tetromino.GetType() == TetrominoType::BAR || next_tetromino.GetType() == TetrominoType::CUBE) {
             next_tetromino.Render(window, this->m_board_position + sf::Vector2f(SIZE/2, 0));
         } else {
             next_tetromino.Render(window, this->m_board_position);
@@ -215,4 +217,13 @@ bool TetrisState::CanTetrominoMove(Movement movement)
     next_position.Move(movement);
 
     return !TetrisState::IsColliding(next_position) && !next_position.IsOutOfBoard(BOARD_WIDTH, BOARD_HEIGHT);
+}
+
+Tetromino TetrisState::CreateTetromino()
+{
+    std::uniform_int_distribution<int> uniform_dist_type(TetrominoType::BAR, TetrominoType::S_SHAPE);
+    return Tetromino(State::GetTexture(TexturesID::TETROMINO),
+                        {15, 5},
+                        static_cast<TetrominoType>(uniform_dist_type(r)),
+                        SIZE);
 }
