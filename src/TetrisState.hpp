@@ -29,7 +29,6 @@ private:
     sf::Time elapsed_time = sf::Time::Zero;
     uint16_t update_number = 0;
     sf::Time speed_time = sf::milliseconds(500);
-    bool is_game_over = false;
     int score = 0;
 
     sf::Text game_over_text;

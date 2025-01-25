@@ -2,6 +2,7 @@
 #include "MenuState.hpp"
 #include "TetrisState.hpp"
 #include "PauseState.hpp"
+#include "GameOverState.hpp"
 
 Application::Application()
 {
@@ -125,6 +126,12 @@ void Application::InitStates()
     
     this->m_states_context.states_map.emplace(StateID::PAUSE,[this]() { 
             auto state = std::make_unique<PauseState>(this->m_states_context, this->m_ressource_manager);
+            state->Init(this->m_window.getSize());
+            return state;
+        });
+
+    this->m_states_context.states_map.emplace(StateID::GAME_OVER,[this]() { 
+            auto state = std::make_unique<GameOverState>(this->m_states_context, this->m_ressource_manager);
             state->Init(this->m_window.getSize());
             return state;
         });

@@ -43,7 +43,9 @@ public:
 
     bool Move(Movement movement);
     bool Revert(Movement movement);
+
     bool SetActiveTetromino();
+    void ClearTetromino() { m_relative_coordinates.clear(); };
 
     TetrominoType GetType() const { return m_type; };
     std::vector<sf::Vector2i> GetAbsoluteCoordinates() const;

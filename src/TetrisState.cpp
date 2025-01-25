@@ -70,7 +70,7 @@ bool TetrisState::ProcessEvents(sf::Event &event)
 bool TetrisState::Update(sf::Time elapsed)
 {
     this->elapsed_time += elapsed;
-    if (this->elapsed_time > this->speed_time && !is_game_over) {
+    if (this->elapsed_time > this->speed_time) {
         if (TetrisState::CanTetrominoMove(Movement::DOWN)) {
             tetromino.Update();
         } else {
@@ -80,8 +80,10 @@ bool TetrisState::Update(sf::Time elapsed)
             this->tetromino.SetActiveTetromino();
             TetrisState::CheckLines();
             if (TetrisState::IsColliding(tetromino)) {
-                is_game_over = true;
                 this->fixed_tetrominos.pop_back();
+                this->tetromino.ClearTetromino();
+                this->next_tetromino.ClearTetromino();
+                State::PushState(StateID::GAME_OVER);
             }
         }
         this->score_text.setString("Score: " + std::to_string(score));
@@ -144,15 +146,11 @@ void TetrisState::Render(sf::RenderWindow &window)
         fixed_tetromino.Render(window, this->m_board_position); 
     }
 
-    if (is_game_over) {
-        window.draw(this->game_over_text);
+    tetromino.Render(window, this->m_board_position);
+    if (next_tetromino.GetType() == TetrominoType::BAR || next_tetromino.GetType() == TetrominoType::CUBE) {
+        next_tetromino.Render(window, this->m_board_position + sf::Vector2f(SIZE/2, 0));
     } else {
-        tetromino.Render(window, this->m_board_position);
-        if (next_tetromino.GetType() == TetrominoType::BAR || next_tetromino.GetType() == TetrominoType::CUBE) {
-            next_tetromino.Render(window, this->m_board_position + sf::Vector2f(SIZE/2, 0));
-        } else {
-            next_tetromino.Render(window, this->m_board_position);
-        }
+        next_tetromino.Render(window, this->m_board_position);
     }
     window.draw(this->score_text);
 }
