@@ -24,6 +24,10 @@ bool GameOverState::ProcessEvents(sf::Event &event)
             State::PopState(State::GetStateID());
             State::PopState(StateID::GAME);
             State::PushState(StateID::MAIN_MENU);
+        } if (keyPressed->code == sf::Keyboard::Key::Space) {
+            State::PopState(State::GetStateID());
+            State::PopState(StateID::GAME);
+            State::PushState(StateID::GAME);
         }
     }
     return false; // Block the state behind
