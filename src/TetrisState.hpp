@@ -6,7 +6,7 @@
 class TetrisState : public State
 {
 public:
-    TetrisState(StatesContext& context);
+    TetrisState(StatesContext& context, RessourceManager& ressource_manager);
     ~TetrisState() = default;
 
     void Init(sf::Vector2u window_size);
@@ -28,15 +28,13 @@ private:
     uint16_t update_number = 0;
     sf::Time speed_time = sf::milliseconds(500);
     bool is_game_over = false;
-
-    sf::Font font;
-    sf::Text game_over_text = sf::Text(font, "Game Over", 50);
-    sf::Text score_text = sf::Text(font, "Score: 0", 20);
-    sf::Texture tetromino_texture;
-    Tetromino tetromino = Tetromino(tetromino_texture, SIZE);
-    Tetromino next_tetromino = Tetromino(tetromino_texture, SIZE);
-    sf::Sprite background = sf::Sprite(tetromino_texture);
     int score = 0;
+
+    sf::Text game_over_text;
+    sf::Text score_text;
+    Tetromino tetromino;
+    Tetromino next_tetromino;
+    sf::Sprite background;
 
     bool IsColliding(Tetromino& new_tetromino);
     void CheckLines();

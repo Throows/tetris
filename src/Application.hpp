@@ -19,6 +19,7 @@ private:
     sf::Time m_elapsed;
 
     StatesContext m_states_context;
+    RessourceManager m_ressource_manager;
 
     void Init();
     void ProcessEvents();
@@ -26,6 +27,9 @@ private:
     void UpdateStates();
     void Render();
     void Shutdown();
+
+    void InitAssets();
+    void InitStates();
 };
 
 

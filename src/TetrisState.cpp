@@ -1,32 +1,30 @@
 #include "TetrisState.hpp"
 #include <iostream>
 
-#define ASSET_SIZE (384.0f)
+#define ASSET_SIZE (384)
 
-TetrisState::TetrisState(StatesContext& context)
-    : State(StateID::GAME, context)
+TetrisState::TetrisState(StatesContext& context, RessourceManager& ressource_manager)
+    : State(StateID::GAME, context, ressource_manager)
+    , game_over_text(State::GetFont(FontsID::CHEESE_MARKET), "Game Over", 50)
+    , score_text(State::GetFont(FontsID::CHEESE_MARKET), "Score: 0", 20)
+    , tetromino(State::GetTexture(TexturesID::TETROMINO), {4, -1}, SIZE)
+    , next_tetromino(State::GetTexture(TexturesID::TETROMINO), {14, 5}, SIZE)
+    , background(State::GetTexture(TexturesID::TETROMINO))
 {
-    this->tetromino_texture = sf::Texture("assets/image/tetrominos.png");
     this->background.setScale({this->SIZE / ASSET_SIZE, this->SIZE / ASSET_SIZE});
-    this->background.setTextureRect(sf::IntRect(sf::Vector2i(TetrominoType::SHAPE_MAX * ASSET_SIZE, 0),
+    this->background.setTextureRect(sf::IntRect(sf::Vector2i(static_cast<int>(TetrominoType::SHAPE_MAX) * ASSET_SIZE, 0),
                                                 sf::Vector2i(ASSET_SIZE, ASSET_SIZE)));
-    this->tetromino.SetActiveTetromino();
+
+    this->game_over_text.setFillColor(sf::Color::Red);
+    this->score_text.setFillColor(sf::Color::White);
 }
 
 void TetrisState::Init(sf::Vector2u window_size)
 {
-    if (!font.openFromFile("assets/font/CheeseMarket.ttf")) {
-        spdlog::error("Cannot load font !");
-    }
-
-    this->game_over_text = sf::Text(font, "Game Over", 50);
-    this->game_over_text.setFillColor(sf::Color::Red);
-
+    this->score_text.setPosition({380, 300});
     sf::Vector2f position = {window_size.x / 2 - this->game_over_text.getGlobalBounds().size.x / 2,
                              window_size.y / 2 - this->game_over_text.getGlobalBounds().size.y / 2};
     this->game_over_text.setPosition(position);
-
-    this->score_text.setPosition({380, 300});
 }
 
 void TetrisState::MoveTetromino(Movement direction)
@@ -74,7 +72,7 @@ void TetrisState::Update(sf::Time elapsed)
         } else {
             this->fixed_tetrominos.push_back(tetromino);
             this->tetromino = this->next_tetromino;
-            this->next_tetromino = Tetromino(this->tetromino_texture);
+            this->next_tetromino = Tetromino(State::GetTexture(TexturesID::TETROMINO), {14, 5}, SIZE);
             this->tetromino.SetActiveTetromino();
             TetrisState::CheckLines();
             if (TetrisState::IsColliding(tetromino)) {
@@ -147,7 +145,11 @@ void TetrisState::Render(sf::RenderWindow &window)
         window.draw(this->game_over_text);
     } else {
         tetromino.Render(window, this->m_board_position);
-        next_tetromino.Render(window, this->m_board_position);
+        if (next_tetromino.GetType() != TetrominoType::BAR && next_tetromino.GetType() != TetrominoType::CUBE) {
+            next_tetromino.Render(window, this->m_board_position + sf::Vector2f(SIZE/2, 0));
+        } else {
+            next_tetromino.Render(window, this->m_board_position);
+        }
     }
     window.draw(this->score_text);
 }

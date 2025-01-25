@@ -5,8 +5,10 @@
 #include <random>
 #include <spdlog/spdlog.h>
 
-Tetromino::Tetromino(const sf::Texture& texture, float size) 
+Tetromino::Tetromino(const sf::Texture& texture, sf::Vector2i coordinates, float size) 
     : m_size(size)
+    , m_rotation(Rotation::ROTATION_0)
+    , m_coordinates(coordinates)
     , block_sprite(texture)
 {
     std::random_device r;
@@ -17,9 +19,11 @@ Tetromino::Tetromino(const sf::Texture& texture, float size)
     Tetromino::ApplyTexture();
 }
 
-Tetromino::Tetromino(const sf::Texture& texture, TetrominoType type, float size)
+Tetromino::Tetromino(const sf::Texture& texture, Rotation rotation, sf::Vector2i coordinates, TetrominoType type, float size)
     : m_type(type)
     , m_size(size)
+    , m_rotation(rotation)
+    , m_coordinates(coordinates)
     , block_sprite(texture)
 {
     Tetromino::CreateTetromino();
@@ -43,14 +47,9 @@ void Tetromino::Update()
 
 void Tetromino::Render(sf::RenderWindow &window, sf::Vector2f position)
 {
-    if (this->m_coordinates.x == 14 && this->m_type != TetrominoType::CUBE && this->m_type != TetrominoType::BAR) {
-        position.x += this->m_size/2.0f;
-    }
-
     for (auto &relative_position : this->m_relative_coordinates)
     {
-        sf::Vector2f board_position = sf::Vector2f(this->m_coordinates + relative_position) * this->m_size;
-        board_position += position;
+        sf::Vector2f board_position = (sf::Vector2f(this->m_coordinates + relative_position) * this->m_size) + position;
         block_sprite.setPosition(board_position);
         window.draw(block_sprite);
     }
@@ -78,8 +77,8 @@ void Tetromino::MoveUp()
 
 void Tetromino::Rotate()
 {
-    for (auto &position : this->m_relative_coordinates)
-    {
+    // Rotate anti-clockwise
+    for (auto &position : this->m_relative_coordinates) {
         int x = position.x;
         position.x = -position.y;
         position.y = x;
@@ -236,6 +235,14 @@ void Tetromino::CreateTetromino()
         break;
     default:
         break;
+    }
+
+    for (int i = 0; i < static_cast<int>(this->m_rotation); i++) {
+        for (auto &position : this->m_relative_coordinates) {
+            int x = position.x;
+            position.x = -position.y;
+            position.y = x;
+        }
     }
 }
 

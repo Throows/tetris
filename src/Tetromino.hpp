@@ -34,8 +34,8 @@ enum Movement
 class Tetromino
 {
 public:
-    Tetromino(const sf::Texture& texture, float size = 25.0f);
-    Tetromino(const sf::Texture& texture, TetrominoType type, float size = 25.0f);
+    Tetromino(const sf::Texture& texture, sf::Vector2i coordinates, float size = 25.0f);
+    Tetromino(const sf::Texture& texture, Rotation rotation, sf::Vector2i coordinates, TetrominoType type, float size = 25.0f);
     Tetromino(const Tetromino &tetromino);
     ~Tetromino() = default;
 
@@ -46,6 +46,7 @@ public:
     bool Revert(Movement movement);
     bool SetActiveTetromino();
 
+    TetrominoType GetType() const { return m_type; };
     std::vector<sf::Vector2i> GetAbsoluteCoordinates() const;
 
     bool IsOutOfBoard(uint16_t width, uint16_t height) const;
@@ -61,7 +62,7 @@ private:
     TetrominoType m_type;
     float m_size;
     Rotation m_rotation;
-    sf::Vector2i m_coordinates = {14, 5};               // Coordinate of next block
+    sf::Vector2i m_coordinates;                         // Coordinate of next block
     std::vector<sf::Vector2i> m_relative_coordinates;   // Relative coordinates of the block parts
 
     sf::Sprite block_sprite;

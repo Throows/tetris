@@ -29,16 +29,9 @@ int Application::Run()
 
 void Application::Init()
 {
-    this->m_states_context.states_map.emplace(StateID::MAIN_MENU,[this]() { 
-            return std::make_unique<MenuState>(this->m_states_context);
-        });
-    this->m_states_context.states_map.emplace(StateID::GAME,[this]() { 
-            auto state = std::make_unique<TetrisState>(this->m_states_context);
-            state->Init(this->m_window.getSize());
-            return state;
-        });
-
-    //this->m_tetris.Init(this->m_window.getSize());
+    Application::InitAssets();
+    Application::InitStates();
+    // Load First State
     auto stateFactory = this->m_states_context.states_map.at(StateID::MAIN_MENU);
     this->m_states_context.states_vec.push_back(stateFactory());
 }
@@ -87,6 +80,9 @@ void Application::UpdateStates()
         }
     }
     this->m_states_context.states_changes.clear();
+    if (this->m_states_context.states_vec.empty()) {
+        this->m_window.close();
+    }
 }
 
 void Application::Render()
@@ -103,4 +99,24 @@ void Application::Render()
 
 void Application::Shutdown()
 {
+}
+
+void Application::InitAssets()
+{
+    this->m_ressource_manager.LoadTexture(TexturesID::TETROMINO, "assets/image/tetrominos.png");
+    this->m_ressource_manager.LoadFont(FontsID::CHEESE_MARKET, "assets/font/CheeseMarket.ttf");
+}
+
+void Application::InitStates()
+{
+    this->m_states_context.states_map.emplace(StateID::MAIN_MENU,[this]() { 
+            auto state = std::make_unique<MenuState>(this->m_states_context, this->m_ressource_manager);
+            state->Init(this->m_window.getSize());
+            return state;
+        });
+    this->m_states_context.states_map.emplace(StateID::GAME,[this]() { 
+            auto state = std::make_unique<TetrisState>(this->m_states_context, this->m_ressource_manager);
+            state->Init(this->m_window.getSize());
+            return state;
+        });
 }
