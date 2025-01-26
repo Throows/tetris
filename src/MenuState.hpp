@@ -15,7 +15,12 @@ public:
     void Render(sf::RenderWindow &window) override;
 
 private:
+    static constexpr float SIZE = 25.0f;
+
     sf::Text m_title;
+    sf::Sprite tetromono_sprite;
     std::vector<Tetromino> m_menu_tetrominos;
     std::vector<Button> m_buttons;
+
+    sf::IntRect GetTextureRect(TetrominoType type);
 };

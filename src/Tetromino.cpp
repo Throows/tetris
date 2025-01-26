@@ -118,8 +118,8 @@ void Tetromino::Rotate()
     // Rotate the blocks Clockwise
     for (auto &position : this->m_relative_coordinates) {
         int x = position.x;
-        position.x = position.y;
-        position.y = -x;
+        position.x = -position.y;
+        position.y = x;
     }
 }
 
@@ -129,8 +129,8 @@ void Tetromino::RotateBlocks()
     for (int i = 0; i < static_cast<int>(this->m_rotation); i++) {
         for (auto &position : this->m_relative_coordinates) {
             int x = position.x;
-            position.x = position.y;
-            position.y = -x;
+            position.x = -position.y;
+            position.y = x;
         }
     }
 }
@@ -141,7 +141,7 @@ void Tetromino::UnRotate()
     // Rotate the blocks Counter-Clockwise
     for (auto &position : this->m_relative_coordinates) {
         int x = position.x;
-        position.x = -position.y;
-        position.y = x;
+        position.x = position.y;
+        position.y = -x;
     }
 }

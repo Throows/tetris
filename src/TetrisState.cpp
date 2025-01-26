@@ -1,8 +1,6 @@
 #include "TetrisState.hpp"
 #include <iostream>
 
-#define ASSET_SIZE (384)
-
 TetrisState::TetrisState(StatesContext& context, RessourceManager& ressource_manager, sf::RenderWindow& window)
     : State(StateID::GAME, context, ressource_manager)
     , SIZE(window.getSize().y / 20)
