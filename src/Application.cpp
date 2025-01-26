@@ -4,9 +4,11 @@
 #include "PauseState.hpp"
 #include "GameOverState.hpp"
 
+#define TETROMINO_SIZE 40
+
 Application::Application()
 {
-    m_window.create(sf::VideoMode({600, 600}), "Tetris - The Game", sf::Style::Titlebar, sf::State::Windowed);
+    m_window.create(sf::VideoMode({TETROMINO_SIZE * 22, TETROMINO_SIZE * 20}), "Tetris - The Game");
     m_window.setFramerateLimit(60);
     Application::Init();
 }
@@ -119,7 +121,7 @@ void Application::InitStates()
             return state;
         });
     this->m_states_context.states_map.emplace(StateID::GAME,[this]() { 
-            return std::make_unique<TetrisState>(this->m_states_context, this->m_ressource_manager);
+            return std::make_unique<TetrisState>(this->m_states_context, this->m_ressource_manager, this->m_window);
         });
     
     this->m_states_context.states_map.emplace(StateID::PAUSE,[this]() { 

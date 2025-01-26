@@ -7,7 +7,7 @@
 class TetrisState : public State
 {
 public:
-    TetrisState(StatesContext& context, RessourceManager& ressource_manager);
+    TetrisState(StatesContext& context, RessourceManager& ressource_manager, sf::RenderWindow& window);
     ~TetrisState() = default;
 
     void MoveTetromino(Movement movement);
@@ -19,7 +19,7 @@ public:
 private:
     static constexpr int BOARD_WIDTH = 10;
     static constexpr int BOARD_HEIGHT = 20;
-    static constexpr float SIZE = 25.0f;
+    float SIZE = 50.0f;
     static constexpr int NEXT_TETROMINO_COUNT = 5;
 
     std::random_device r;
@@ -32,8 +32,8 @@ private:
     int score = 0;
     bool game_over = false;
 
-    const sf::Vector2f m_board_position = { 50, 0 };
-    const sf::Vector2f m_next_tetromino_position = { 425, 175 };
+    const sf::Vector2f m_board_position = { SIZE * 2, 0 };
+    const sf::Vector2f m_next_tetromino_position = { m_board_position.x + BOARD_WIDTH * SIZE + 5 * SIZE, 8 * SIZE };
     sf::Sprite tetromono_sprite;
     sf::Text score_text;
     Tetromino tetromino;

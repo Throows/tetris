@@ -3,8 +3,9 @@
 
 #define ASSET_SIZE (384)
 
-TetrisState::TetrisState(StatesContext& context, RessourceManager& ressource_manager)
+TetrisState::TetrisState(StatesContext& context, RessourceManager& ressource_manager, sf::RenderWindow& window)
     : State(StateID::GAME, context, ressource_manager)
+    , SIZE(window.getSize().y / 20)
     , tetromono_sprite(State::GetTexture(TexturesID::TETROMINO))
     , score_text(State::GetFont(FontsID::CHEESE_MARKET), "Score: 0", 20)
 {
@@ -30,7 +31,7 @@ TetrisState::TetrisState(StatesContext& context, RessourceManager& ressource_man
     this->tetromono_sprite.setScale({this->SIZE / ASSET_SIZE, this->SIZE / ASSET_SIZE});
     this->tetromino.SetActiveTetromino();
     this->score_text.setFillColor(sf::Color::White);
-    this->score_text.setPosition({380, 300});
+    this->score_text.setPosition({ this->SIZE * 16 , this->SIZE * 13 });
 }
 
 void TetrisState::MoveTetromino(Movement direction)
@@ -100,30 +101,12 @@ bool TetrisState::Update(sf::Time elapsed)
     return true;
 }
 
-// 375, 125
-const sf::Vector2f next_tetromino_position[] = {
-    {350, 100},
-    {375, 100},
-    {400, 100},
-    {425, 100},
-    {450, 100},
-    {475, 100},
-    {500, 100},
-    {500, 125},
-    {500, 150},
-    {500, 175},
-    {500, 200},
-    {500, 225},
-    {475, 225},
-    {450, 225},
-    {425, 225},
-    {400, 225},
-    {375, 225},
-    {350, 225},
-    {350, 200},
-    {350, 175},
-    {350, 150},
-    {350, 125}
+// 7*6 Rectangle around the Tetromino
+const sf::Vector2f tetromino_border_grid[] = {
+    {-3, -3},{-2, -3},{-1, -3},{0, -3},{1, -3},{2, -3},{3, -3},
+    {3, -2},{3, -1},{3, 0},{3, 1},{3, 2},
+    {2, 2},{1, 2},{0, 2},{-1, 2},{-2, 2},{-3, 2},
+    {-3, 1},{-3, 0},{-3, -1},{-3, -2}
 };
 
 void TetrisState::Render(sf::RenderWindow &window)
@@ -140,8 +123,8 @@ void TetrisState::Render(sf::RenderWindow &window)
 
     // Border of next Tetromino
     this->tetromono_sprite.setTextureRect(GetTextureRect(TetrominoType::SHAPE_MAX));
-    for (const auto &position : next_tetromino_position) {
-        this->tetromono_sprite.setPosition(position);
+    for (auto &position : tetromino_border_grid) {
+        this->tetromono_sprite.setPosition(this->m_next_tetromino_position + (sf::Vector2f(position) * this->SIZE));
         window.draw(this->tetromono_sprite);
     }
 
