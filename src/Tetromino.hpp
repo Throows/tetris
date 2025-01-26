@@ -3,7 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <map>
 
-enum TetrominoType : int
+enum TetrominoType : uint8_t
 {
     BAR         = 0,
     T_SHAPE     = 1,
@@ -34,46 +34,33 @@ enum Movement
 class Tetromino
 {
 public:
-    Tetromino(const sf::Texture& texture, sf::Vector2i coordinates, TetrominoType type, float size = 25.0f,  Rotation rotation = Rotation::ROTATION_0);
-    Tetromino(const Tetromino &tetromino);
+    Tetromino() = default;
     ~Tetromino() = default;
 
-    void Update();
-    void Render(sf::RenderWindow &window, sf::Vector2f position = {0, 0});
+    TetrominoType GetType() const { return m_type; };
+    std::array<sf::Vector2i, 4> GetAbsoluteCoordinates() const;
+
+    bool SetActiveTetromino();
+    void SetType(TetrominoType type);
+    void SetRotation(Rotation rotation);
+    void SetCoordinates(sf::Vector2i coordinates) { this->m_coordinates = coordinates; }
 
     bool Move(Movement movement);
     bool Revert(Movement movement);
 
-    bool SetActiveTetromino();
-    void ClearTetromino() { m_relative_coordinates.clear(); };
-
-    TetrominoType GetType() const { return m_type; };
-    std::vector<sf::Vector2i> GetAbsoluteCoordinates() const;
-
-    bool IsOutOfBoard(uint16_t width, uint16_t height) const;
-    bool IsColliding(const Tetromino &tetromino) const;
-    bool IsEmpty() const { return m_relative_coordinates.empty(); };
-
-    void RemoveLine(uint8_t line);
-    void MovePartsDown(uint8_t line);
-
-    Tetromino &operator=(const Tetromino &tetromino);
-
 private:
     TetrominoType m_type;
-    float m_size;
-    Rotation m_rotation;
-    sf::Vector2i m_coordinates;                         // Coordinate of next block
-    std::vector<sf::Vector2i> m_relative_coordinates;   // Relative coordinates of the block parts
-
-    sf::Sprite block_sprite;
+    Rotation m_rotation = Rotation::ROTATION_0;
+    sf::Vector2i m_coordinates = {0, 0};                           // Coordinate of next block
+    std::array<sf::Vector2i, 4> m_relative_coordinates;   // Relative coordinates of the block parts
 
     void CreateTetromino();
-    void ApplyTexture();
 
-    void MoveLeft();
-    void MoveRight();
-    void MoveDown();
-    void MoveUp();
+    void MoveLeft() { this->m_coordinates.x--; }
+    void MoveRight() { this->m_coordinates.x++; }
+    void MoveDown() { this->m_coordinates.y++; }
+    void MoveUp() { this->m_coordinates.y--;}
     void Rotate();
+    void UnRotate();
+    void RotateBlocks();
 };

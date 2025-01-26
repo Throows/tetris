@@ -5,30 +5,32 @@
 
 TetrisState::TetrisState(StatesContext& context, RessourceManager& ressource_manager)
     : State(StateID::GAME, context, ressource_manager)
-    , game_over_text(State::GetFont(FontsID::CHEESE_MARKET), "Game Over", 50)
+    , tetromono_sprite(State::GetTexture(TexturesID::TETROMINO))
     , score_text(State::GetFont(FontsID::CHEESE_MARKET), "Score: 0", 20)
-    , tetromino(TetrisState::CreateTetromino())
-    , next_tetromino(TetrisState::CreateTetromino())
-    , background(State::GetTexture(TexturesID::TETROMINO))
 {
-    this->background.setScale({this->SIZE / ASSET_SIZE, this->SIZE / ASSET_SIZE});
-    this->background.setTextureRect(sf::IntRect(sf::Vector2i(static_cast<int>(TetrominoType::SHAPE_MAX) * ASSET_SIZE, 0),
-                                                sf::Vector2i(ASSET_SIZE, ASSET_SIZE)));
 
-    this->tetromino.SetActiveTetromino();
+    for (int i = 0; i < BOARD_WIDTH; i++) {
+        for (int j = 0; j < BOARD_HEIGHT; j++) {
+            this->m_board[i + j * BOARD_WIDTH] = TetrominoType::SHAPE_MAX;
+        }
+    }
 
-    this->game_over_text.setFillColor(sf::Color::Red);
-    this->score_text.setFillColor(sf::Color::White);
     std::seed_seq seed{r(), r(), r(), r(), r(), r(), r(), r()};
     std::mt19937 gen(seed);
-}
+    std::uniform_int_distribution<int> uniform_dist_type(TetrominoType::BAR, TetrominoType::SHAPE_MAX-1);
+    for (int i = 0; i < NEXT_TETROMINO_COUNT; i++) {
+        this->falling_tetrominos[i] = static_cast<TetrominoType>(uniform_dist_type(gen));
+    }
+    this->tetromino.SetType(TetrisState::GetRandomTetromino());
+    this->tetromino.SetRotation(Rotation::ROTATION_0);
+    this->tetromino.SetActiveTetromino();
+    this->next_tetromino.SetType(TetrisState::GetRandomTetromino());
+    this->next_tetromino.SetRotation(Rotation::ROTATION_0);
 
-void TetrisState::Init(sf::Vector2u window_size)
-{
+    this->tetromono_sprite.setScale({this->SIZE / ASSET_SIZE, this->SIZE / ASSET_SIZE});
+    this->tetromino.SetActiveTetromino();
+    this->score_text.setFillColor(sf::Color::White);
     this->score_text.setPosition({380, 300});
-    sf::Vector2f position = {window_size.x / 2 - this->game_over_text.getGlobalBounds().size.x / 2,
-                             window_size.y / 2 - this->game_over_text.getGlobalBounds().size.y / 2};
-    this->game_over_text.setPosition(position);
 }
 
 void TetrisState::MoveTetromino(Movement direction)
@@ -72,17 +74,17 @@ bool TetrisState::Update(sf::Time elapsed)
     this->elapsed_time += elapsed;
     if (this->elapsed_time > this->speed_time) {
         if (TetrisState::CanTetrominoMove(Movement::DOWN)) {
-            tetromino.Update();
+            tetromino.Move(Movement::DOWN);
         } else {
-            this->fixed_tetrominos.push_back(tetromino);
-            this->tetromino = this->next_tetromino;
-            this->next_tetromino = TetrisState::CreateTetromino();
+            TetrisState::FixTetromino();
+            this->tetromino.SetType(this->next_tetromino.GetType());
+            this->tetromino.SetRotation(Rotation::ROTATION_0);
             this->tetromino.SetActiveTetromino();
+            this->next_tetromino.SetType(TetrisState::GetRandomTetromino());
+            this->next_tetromino.SetRotation(Rotation::ROTATION_0);
             TetrisState::CheckLines();
-            if (TetrisState::IsColliding(tetromino)) {
-                this->fixed_tetrominos.pop_back();
-                this->tetromino.ClearTetromino();
-                this->next_tetromino.ClearTetromino();
+            if (!TetrisState::CanTetrominoMove(Movement::DOWN)) {
+                this->game_over = true;
                 State::PushState(StateID::GAME_OVER);
             }
         }
@@ -126,39 +128,50 @@ const sf::Vector2f next_tetromino_position[] = {
 
 void TetrisState::Render(sf::RenderWindow &window)
 {
-    // Border of next Tetromino
+    // Draw the board
     for (int i = 0; i < BOARD_WIDTH; i++) {
         for (int j = 0; j < BOARD_HEIGHT; j++) {
-            this->background.setPosition({i * this->SIZE + this->m_board_position.x, 
-                                          j * this->SIZE + m_board_position.y});
-            window.draw(this->background);
+            this->tetromono_sprite.setTextureRect(GetTextureRect(m_board[i + j * BOARD_WIDTH]));
+            sf::Vector2f pos = this->m_board_position + sf::Vector2f(i * this->SIZE, j * this->SIZE);
+            this->tetromono_sprite.setPosition(pos);
+            window.draw(this->tetromono_sprite);
         }
     }
 
-    // Board background
+    // Border of next Tetromino
+    this->tetromono_sprite.setTextureRect(GetTextureRect(TetrominoType::SHAPE_MAX));
     for (const auto &position : next_tetromino_position) {
-        this->background.setPosition(position);
-        window.draw(this->background);
+        this->tetromono_sprite.setPosition(position);
+        window.draw(this->tetromono_sprite);
     }
 
-    // Fixed Tetromino
-    for (auto &fixed_tetromino : this->fixed_tetrominos) {
-        fixed_tetromino.Render(window, this->m_board_position); 
+    // Draw the Tetromino
+    this->tetromono_sprite.setTextureRect(GetTextureRect(this->tetromino.GetType()));
+    for (auto &position : tetromino.GetAbsoluteCoordinates()) {
+        this->tetromono_sprite.setPosition(this->m_board_position + (sf::Vector2f(position) * this->SIZE));
+        window.draw(this->tetromono_sprite);
     }
 
-    tetromino.Render(window, this->m_board_position);
-    if (next_tetromino.GetType() == TetrominoType::BAR || next_tetromino.GetType() == TetrominoType::CUBE) {
-        next_tetromino.Render(window, this->m_board_position + sf::Vector2f(SIZE/2, 0));
-    } else {
-        next_tetromino.Render(window, this->m_board_position);
+    // Draw the next Tetromino
+    this->tetromono_sprite.setTextureRect(GetTextureRect(this->next_tetromino.GetType()));
+    for (auto &position : next_tetromino.GetAbsoluteCoordinates()) { 
+        if (next_tetromino.GetType() == TetrominoType::BAR || next_tetromino.GetType() == TetrominoType::CUBE) { 
+            this->tetromono_sprite.setPosition(this->m_next_tetromino_position + (sf::Vector2f(position) * this->SIZE) + sf::Vector2f(SIZE/2, 0));
+        } else {
+            this->tetromono_sprite.setPosition(this->m_next_tetromino_position + (sf::Vector2f(position) * this->SIZE));
+        }
+        window.draw(this->tetromono_sprite);
     }
     window.draw(this->score_text);
 }
 
 bool TetrisState::IsColliding(Tetromino& new_tetromino)
 {
-    for (const Tetromino& fixed_tetromino : fixed_tetrominos) {   
-        if (new_tetromino.IsColliding(fixed_tetromino)) {
+    for (auto &position : new_tetromino.GetAbsoluteCoordinates()) {
+        if (position.x < 0 
+        || position.x >= BOARD_WIDTH 
+        || position.y >= BOARD_HEIGHT
+        || this->m_board[position.x + position.y * BOARD_WIDTH] != TetrominoType::SHAPE_MAX) {
             return true;
         }
     }
@@ -167,33 +180,25 @@ bool TetrisState::IsColliding(Tetromino& new_tetromino)
 
 void TetrisState::CheckLines()
 {
-    uint8_t block_per_lines[BOARD_HEIGHT] = {0};
-
-    for (const Tetromino& fixed_tetromino : fixed_tetrominos) {
-        for (const sf::Vector2i& position : fixed_tetromino.GetAbsoluteCoordinates()) {
-            block_per_lines[position.y]++;
-        }
-    }
-
     uint8_t lines_full = 0;
-    for (uint8_t y = 0; y < BOARD_HEIGHT; y++)
-    {
-        if (block_per_lines[y] == BOARD_WIDTH)
-        {
-            lines_full++;
-            for (Tetromino& fixed_tetromino : fixed_tetrominos) {
-                fixed_tetromino.RemoveLine(y);
-                fixed_tetromino.MovePartsDown(y);
-            } 
+    for (int y = (BOARD_HEIGHT-1); y > 0; y--) { 
+        bool is_line_full = true;
+        for (int x = 0; x < BOARD_WIDTH; x++) {
+            if (this->m_board[x + y * BOARD_WIDTH] == TetrominoType::SHAPE_MAX) {
+                is_line_full = false;
+                break;
+            }
+        }
+        if (is_line_full) {
+            if (this->m_board[y * BOARD_WIDTH] != TetrominoType::SHAPE_MAX) lines_full++;
+            for (int new_y = y; new_y > 0; new_y--) {
+                for (int x = 0; x < BOARD_WIDTH; x++) {
+                    this->m_board[x + new_y * BOARD_WIDTH] = this->m_board[x + (new_y-1) * BOARD_WIDTH];
+                }
+            }
+            y++; // Check the same line again as it has been moved down
         }
     }
-    this->fixed_tetrominos.erase(
-                std::remove_if(this->fixed_tetrominos.begin(),
-                            this->fixed_tetrominos.end(),
-                            [](Tetromino fixed_tetromino) {
-                                return fixed_tetromino.IsEmpty();
-                            }),
-                            this->fixed_tetrominos.end());
     TetrisState::UpdateScore(lines_full);
 }
 
@@ -214,15 +219,32 @@ bool TetrisState::CanTetrominoMove(Movement movement)
 {
     Tetromino next_position = tetromino;
     next_position.Move(movement);
-
-    return !TetrisState::IsColliding(next_position) && !next_position.IsOutOfBoard(BOARD_WIDTH, BOARD_HEIGHT);
+    return !TetrisState::IsColliding(next_position);
 }
 
-Tetromino TetrisState::CreateTetromino()
+void TetrisState::FixTetromino()
 {
-    std::uniform_int_distribution<int> uniform_dist_type(TetrominoType::BAR, TetrominoType::S_SHAPE);
-    return Tetromino(State::GetTexture(TexturesID::TETROMINO),
-                        {15, 5},
-                        static_cast<TetrominoType>(uniform_dist_type(r)),
-                        SIZE);
+    for (auto &position : tetromino.GetAbsoluteCoordinates()) {
+        assert(this->m_board[position.x + position.y * BOARD_WIDTH] == TetrominoType::SHAPE_MAX);
+        this->m_board[position.x + position.y * BOARD_WIDTH] = tetromino.GetType();
+    }
+}
+
+sf::IntRect TetrisState::GetTextureRect(TetrominoType type)
+{
+    return sf::IntRect(sf::Vector2i(static_cast<int>(type) * ASSET_SIZE, 0), sf::Vector2i(ASSET_SIZE, ASSET_SIZE));
+}
+
+TetrominoType TetrisState::GetRandomTetromino()
+{
+    TetrominoType type = this->falling_tetrominos[0];
+    std::uniform_int_distribution<int> uniform_dist_type(TetrominoType::BAR, TetrominoType::SHAPE_MAX-1); 
+    //TODO: Implement weighted random distribution
+
+    for (int i = 0; i < NEXT_TETROMINO_COUNT - 1; i++) {
+        this->falling_tetrominos[i] = this->falling_tetrominos[i+1];
+    }
+    this->falling_tetrominos[NEXT_TETROMINO_COUNT - 1] = static_cast<TetrominoType>(uniform_dist_type(r));
+
+    return type;
 }

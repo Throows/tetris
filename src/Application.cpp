@@ -6,7 +6,7 @@
 
 Application::Application()
 {
-    m_window.create(sf::VideoMode({550, 550}), "Tetris - The Game", sf::Style::Titlebar, sf::State::Windowed);
+    m_window.create(sf::VideoMode({600, 600}), "Tetris - The Game", sf::Style::Titlebar, sf::State::Windowed);
     m_window.setFramerateLimit(60);
     Application::Init();
 }
@@ -119,9 +119,7 @@ void Application::InitStates()
             return state;
         });
     this->m_states_context.states_map.emplace(StateID::GAME,[this]() { 
-            auto state = std::make_unique<TetrisState>(this->m_states_context, this->m_ressource_manager);
-            state->Init(this->m_window.getSize());
-            return state;
+            return std::make_unique<TetrisState>(this->m_states_context, this->m_ressource_manager);
         });
     
     this->m_states_context.states_map.emplace(StateID::PAUSE,[this]() { 

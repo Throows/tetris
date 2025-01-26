@@ -29,14 +29,14 @@ void MenuState::Init(sf::Vector2u window_size)
     this->m_title.setPosition(position);
 
     // TODO: (Later on) Make a replay file and play the game in the menu
-    sf::Texture& texture = State::GetTexture(TexturesID::TETROMINO);
-    m_menu_tetrominos.push_back(Tetromino(texture, {2, 525/25}, TetrominoType::BAR,     25.0f, Rotation::ROTATION_0));
-    m_menu_tetrominos.push_back(Tetromino(texture, {0, 475/25}, TetrominoType::T_SHAPE, 25.0f, Rotation::ROTATION_90));
-    m_menu_tetrominos.push_back(Tetromino(texture, {2, 475/25}, TetrominoType::J_SHAPE, 25.0f, Rotation::ROTATION_270));
-    m_menu_tetrominos.push_back(Tetromino(texture, {4, 500/25}, TetrominoType::CUBE   , 25.0f, Rotation::ROTATION_0));
-    m_menu_tetrominos.push_back(Tetromino(texture, {0, 425/25}, TetrominoType::S_SHAPE, 25.0f, Rotation::ROTATION_90));
-    m_menu_tetrominos.push_back(Tetromino(texture, {5, 500/25}, TetrominoType::J_SHAPE, 25.0f, Rotation::ROTATION_270));
-    m_menu_tetrominos.push_back(Tetromino(texture, {3, 450/25}, TetrominoType::Z_SHAPE, 25.0f, Rotation::ROTATION_0));
+    //sf::Texture& texture = State::GetTexture(TexturesID::TETROMINO);
+    //m_menu_tetrominos.push_back(Tetromino(texture, {2, 525/25}, TetrominoType::BAR,     25.0f, Rotation::ROTATION_0));
+    //m_menu_tetrominos.push_back(Tetromino(texture, {0, 475/25}, TetrominoType::T_SHAPE, 25.0f, Rotation::ROTATION_90));
+    //m_menu_tetrominos.push_back(Tetromino(texture, {2, 475/25}, TetrominoType::J_SHAPE, 25.0f, Rotation::ROTATION_270));
+    //m_menu_tetrominos.push_back(Tetromino(texture, {4, 500/25}, TetrominoType::CUBE   , 25.0f, Rotation::ROTATION_0));
+    //m_menu_tetrominos.push_back(Tetromino(texture, {0, 425/25}, TetrominoType::S_SHAPE, 25.0f, Rotation::ROTATION_90));
+    //m_menu_tetrominos.push_back(Tetromino(texture, {5, 500/25}, TetrominoType::J_SHAPE, 25.0f, Rotation::ROTATION_270));
+    //m_menu_tetrominos.push_back(Tetromino(texture, {3, 450/25}, TetrominoType::Z_SHAPE, 25.0f, Rotation::ROTATION_0));
 }
 
 bool MenuState::ProcessEvents(sf::Event &event)
@@ -67,10 +67,6 @@ void MenuState::Render(sf::RenderWindow &window)
 {
     window.clear(sf::Color(0xC7, 0x6E, 0x00));
     window.draw(this->m_title);
-
-    for (auto& tetromino : m_menu_tetrominos) {
-        tetromino.Render(window);
-    }
 
     for (auto& button : m_buttons) {
         button.Render(window);
