@@ -2,6 +2,8 @@
 #include <map>
 #include <SFML/Graphics.hpp>
 
+#define ASSET_SIZE (384)
+
 enum FontsID {
     CHEESE_MARKET,
 };

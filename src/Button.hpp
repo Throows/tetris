@@ -14,8 +14,7 @@ enum ButtonState
 class Button
 {
 public:
-    Button(RessourceManager& ressources) 
-    : m_text(ressources.GetFont(FontsID::CHEESE_MARKET)) {}
+    Button(sf::Font& font) : m_text(font) {}
     ~Button() = default;
 
     void SetPosition(sf::Vector2f position);
