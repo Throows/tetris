@@ -48,16 +48,14 @@ bool Tetromino::Revert(Movement movement)
     return true;
 }
 
-bool Tetromino::SetActiveTetromino()
+void Tetromino::ResetPosition(sf::Vector2i position)
 {
-    if (this->m_type == TetrominoType::CUBE) {
-        this->m_coordinates = {5, 1};
-    } else if (this->m_type == TetrominoType::BAR) {
-        this->m_coordinates = {5, 0};
-    } else {
-        this->m_coordinates = {4, 1};
-    }
-    return true;
+    this->m_coordinates = position;
+
+    if (this->m_type == TetrominoType::CUBE || this->m_type == TetrominoType::BAR)
+        this->m_coordinates.x++;
+    if (this->m_type == TetrominoType::BAR)
+        this->m_coordinates.y--;
 }
 
 void Tetromino::SetType(TetrominoType type)
@@ -144,4 +142,60 @@ void Tetromino::UnRotate()
         position.x = position.y;
         position.y = -x;
     }
+}
+
+std::ostream &operator<<(std::ostream &os, const Movement &move)
+{
+    switch (move)
+    {
+    case LEFT:
+        os << "LEFT";
+        break;
+    case RIGHT:
+        os << "RIGHT";
+        break;
+    case DOWN:
+        os << "DOWN";
+        break;
+    case ROTATE:
+        os << "ROTATE";
+        break;
+    case BOTTOM:
+        os << "BOTTOM";
+        break;
+    default:
+        break;
+    }
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const TetrominoType &type)
+{
+    switch (type)
+    {
+    case BAR:
+        os << "BAR";
+        break;
+    case T_SHAPE:
+        os << "T_SHAPE";
+        break;
+    case CUBE:
+        os << "CUBE";
+        break;
+    case L_SHAPE:
+        os << "L_SHAPE";
+        break;
+    case J_SHAPE:
+        os << "J_SHAPE";
+        break;
+    case Z_SHAPE:
+        os << "Z_SHAPE";
+        break;
+    case S_SHAPE:
+        os << "S_SHAPE";
+        break;
+    default:
+        break;
+    }
+    return os;
 }

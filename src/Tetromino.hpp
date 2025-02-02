@@ -15,14 +15,14 @@ enum TetrominoType : uint8_t
     SHAPE_MAX   = 7,
 };
 
-enum Rotation : int {
+enum Rotation : uint8_t {
     ROTATION_0      = 0,
     ROTATION_90     = 1,
     ROTATION_180    = 2,
     ROTATION_270    = 3
 };
 
-enum Movement
+enum Movement : uint8_t
 {
     LEFT = 0,
     RIGHT = 1,
@@ -30,6 +30,9 @@ enum Movement
     ROTATE = 3,
     BOTTOM = 4
 };
+
+std::ostream& operator<<(std::ostream& os, const Movement& move);
+std::ostream& operator<<(std::ostream& os, const TetrominoType& type);
 
 class Tetromino
 {
@@ -39,8 +42,9 @@ public:
 
     TetrominoType GetType() const { return m_type; };
     std::array<sf::Vector2i, 4> GetAbsoluteCoordinates() const;
+    const sf::Vector2i& GetCenterCoordinates() const { return this->m_coordinates; }
 
-    bool SetActiveTetromino();
+    void ResetPosition(sf::Vector2i position = {4, 1});
     void SetType(TetrominoType type);
     void SetRotation(Rotation rotation);
     void SetCoordinates(sf::Vector2i coordinates) { this->m_coordinates = coordinates; }
